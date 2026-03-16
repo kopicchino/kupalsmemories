@@ -64,7 +64,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
 .bg-blob:nth-child(2){width:480px;height:480px;bottom:-160px;right:-140px;background:radial-gradient(circle,rgba(232,113,138,.17) 0%,transparent 70%);animation-delay:-10s;animation-duration:16s;}
 .bg-blob:nth-child(3){width:300px;height:300px;top:40%;left:55%;background:radial-gradient(circle,rgba(201,184,176,.12) 0%,transparent 70%);animation-delay:-5s;animation-duration:24s;}
 @keyframes blobDrift{0%{transform:translate(0,0) scale(1);}50%{transform:translate(30px,25px) scale(1.05);}100%{transform:translate(-15px,45px) scale(.97);}}
-.spin-wrap{position:fixed;inset:0;z-index:500;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:15px;transition:opacity .4s var(--smooth);}
+.spin-wrap{display:none!important;}
 .spin-wrap.gone{opacity:0;pointer-events:none;}
 .spinner{width:38px;height:38px;border-radius:50%;border:3px solid rgba(232,113,138,.18);border-top-color:var(--rose);animation:spin .75s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
@@ -792,11 +792,7 @@ function badge(type, msg) {
   $id('fbBadgeTxt').textContent = msg;
   setTimeout(() => el.classList.remove('show'), 4000);
 }
-function hideSpin() {
-  const s = $id('spinWrap');
-  s.classList.add('gone');
-  setTimeout(() => s.style.display='none', 500);
-}
+function hideSpin() { const s=$id('spinWrap'); if(s){s.style.display='none';} }
 
 /* ══ UTILS ══ */
 const $id  = s => document.getElementById(s);
@@ -831,6 +827,8 @@ const dz = $id('dzBox');
 ['dragleave','drop'].forEach(e => dz.addEventListener(e, () => dz.classList.remove('drag')));
 
 /* ══ BOOT ══ */
+// Show login immediately — never wait for Firebase to show UI
+showLogin();
 fbInit();
 </script>
 </body>
