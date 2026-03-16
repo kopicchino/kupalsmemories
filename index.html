@@ -776,6 +776,7 @@ function renderGallery(){
 }
 
 function renderFilteredGallery(mems){
+  console.log('Rendering gallery with', mems.length, 'memories');
   var grid = $id('galGrid');
   $id('memCnt').textContent = mems.length+' '+(mems.length===1?'memory':'memories');
   if(!mems.length){
@@ -783,6 +784,7 @@ function renderFilteredGallery(mems){
     return;
   }
   grid.innerHTML = mems.map(function(m,i){
+    console.log('Rendering memory:', m.id, m.photo ? 'has photo' : 'no photo', m.photo);
     var uid   = currentUser.uid;
     var liked = (m.likedBy||[]).indexOf(uid)!==-1;
     var owner = m.author.uid===uid;
@@ -851,6 +853,8 @@ if(localStorage.getItem('theme') === 'dark'){
 <script>
 try {
   const app = firebase.initializeApp({
+  // IMPORTANT: REPLACE THIS WITH YOUR FIREBASE PROJECT'S CONFIG
+  // Get it from Firebase Console > Project Settings > General > Your Apps > Web App Config
   apiKey: "AIzaSyBLQxsqCpYeJznt_x8qU0Vvi-Sjqo7JRG0",
   authDomain: "kupalsmemories.firebaseapp.com",
   projectId: "kupalsmemories",
