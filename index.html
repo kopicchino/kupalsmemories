@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Circle of Memories</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js"></script>
 <style>
 :root{
   --cream:#faf7f2;--warm:#fff9f5;--blush:#f4b8c1;--rose:#e8718a;
@@ -550,10 +553,13 @@ async function postMemory() {
 }
 
 function doAddMemory(mem){
-  var fb = window._fb;
-  mem.timestamp = fb.serverTimestamp();
-  return fb.addDoc(fb.collection(fb.db,'memories'),mem)
-           .then(()=> toast('Memory posted! ✨'));
+  if(fbMode && window._fb){
+    mem.timestamp = fb.serverTimestamp();
+    return fb.addDoc(fb.collection(fb.db,'memories'),mem)
+             .then(()=> toast('Memory posted! ✨'));
+  } else {
+    toast('Database connection failed. Memories require online database.');
+  }
 }
 function resetUpload(btn){
   $id('photoIn').value = '';
@@ -569,8 +575,7 @@ function deleteMemory(mid){
   if(fbMode && window._fb){
     window._fb.deleteDoc(window._fb.doc(window._fb.db,'memories',mid));
   } else {
-    memories = memories.filter(function(m){ return m.id !== mid; });
-    renderGallery();
+    toast('Database connection failed. Cannot delete memory.');
   }
   toast('Memory removed.');
 }
@@ -587,17 +592,7 @@ function toggleLike(mid){
       : {likedBy:fb.arrayUnion(uid),  likes:(m.likes||0)+1}
     );
   } else {
-    var m2 = memories.find(function(x){ return x.id===mid; }); if(!m2) return;
-    var i  = m2.likedBy.indexOf(uid);
-    if(i===-1){ m2.likedBy.push(uid); m2.likes++; }
-    else { m2.likedBy.splice(i,1); m2.likes--; }
-    var btn = document.querySelector('[data-like="'+mid+'"]');
-    if(btn){
-      var lk = m2.likedBy.indexOf(uid)!==-1;
-      btn.className = 'act'+(lk?' liked':'');
-      btn.dataset.like = mid;
-      btn.innerHTML = '<span class="heart">'+(lk?'❤️':'🤍')+'</span> '+(m2.likes>0?m2.likes:'Like');
-    }
+    toast('Database connection failed. Cannot like memory.');
   }
 }
 
@@ -623,11 +618,7 @@ function submitCmt(mid){
     window._fb.updateDoc(window._fb.doc(window._fb.db,'memories',mid),{comments:window._fb.arrayUnion(cmt)});
     inp.value = '';
   } else {
-    var m = memories.find(function(x){ return x.id===mid; }); if(!m) return;
-    if(!m.comments) m.comments=[];
-    m.comments.push(cmt); inp.value=''; renderCmts(mid);
-    var btn = document.querySelector('[data-cmt="'+mid+'"]');
-    if(btn) btn.innerHTML = '\uD83D\uDCAC '+m.comments.length;
+    toast('Database connection failed. Cannot add comment.');
   }
 }
 
@@ -640,9 +631,7 @@ function deleteCmt(mid,cid){
       fb.updateDoc(fb.doc(fb.db,'memories',mid),{comments:updated});
     });
   } else {
-    var m = memories.find(function(x){ return x.id===mid; }); if(!m) return;
-    m.comments = m.comments.filter(function(c){ return c.id!==cid; });
-    renderCmts(mid);
+    toast('Database connection failed. Cannot delete comment.');
   }
 }
 
@@ -834,12 +823,9 @@ if(localStorage.getItem('theme') === 'dark'){
 </script>
 
 <!-- Firebase loads separately, does NOT block login -->
-<script type="module">
+<script>
 try {
-  const {initializeApp} = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js');
-  const {getFirestore,collection,doc,addDoc,setDoc,getDoc,deleteDoc,onSnapshot,updateDoc,arrayUnion,arrayRemove,serverTimestamp,query,orderBy} = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
-  const {getStorage,ref,uploadString,getDownloadURL} = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js');
-  const app = initializeApp({
+  const app = firebase.initializeApp({
   apiKey:'AIzaSyBLQxsqCpYeJznt_x8qU0Vvi-Sjqo7JRG0',
   authDomain:'kupalsmemories.firebaseapp.com',
   projectId:'kupalsmemories',
@@ -848,10 +834,10 @@ try {
   appId:'1:888207826275:web:fbb84eecbd8d0ac00f4756'
 });
   window._fb = {
-    db:getFirestore(app), storage:getStorage(app),
-    collection,doc,addDoc,setDoc,getDoc,deleteDoc,
-    onSnapshot,updateDoc,arrayUnion,arrayRemove,
-    serverTimestamp,query,orderBy,ref,uploadString,getDownloadURL
+    db:firebase.getFirestore(app), storage:firebase.getStorage(app),
+    collection:firebase.collection,doc:firebase.doc,addDoc:firebase.addDoc,setDoc:firebase.setDoc,getDoc:firebase.getDoc,deleteDoc:firebase.deleteDoc,
+    onSnapshot:firebase.onSnapshot,updateDoc:firebase.updateDoc,arrayUnion:firebase.arrayUnion,arrayRemove:firebase.arrayRemove,
+    serverTimestamp:firebase.serverTimestamp,query:firebase.query,orderBy:firebase.orderBy,ref:firebase.ref,uploadString:firebase.uploadString,getDownloadURL:firebase.getDownloadURL
   };
 } catch(e){
   window._fb = null;
