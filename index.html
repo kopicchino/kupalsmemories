@@ -5,185 +5,136 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Circle of Memories</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
-
-<script type="module">
-try {
-  const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js");
-  const { getFirestore, collection, doc, addDoc, setDoc, getDoc,
-          deleteDoc, onSnapshot, updateDoc, arrayUnion, arrayRemove,
-          serverTimestamp, query, orderBy } =
-    await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js");
-  const { getStorage, ref, uploadString, getDownloadURL } =
-    await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js");
-
-  const firebaseConfig = {
-    apiKey:            "AIzaSyBLQxsqCpYeJznt_x8qU0Vvi-Sjqo7JRG0",
-    authDomain:        "kupalsmemories.firebaseapp.com",
-    projectId:         "kupalsmemories",
-    storageBucket:     "kupalsmemories.firebasestorage.app",
-    messagingSenderId: "888207826275",
-    appId:             "1:888207826275:web:fbb84eecbd8d0ac00f4756",
-    measurementId:     "G-C0SWL10NW3"
-  };
-
-  const app     = initializeApp(firebaseConfig);
-  const db      = getFirestore(app);
-  const storage = getStorage(app);
-
-  window._fb = {
-    db, storage,
-    collection, doc, addDoc, setDoc, getDoc,
-    deleteDoc, onSnapshot, updateDoc, arrayUnion, arrayRemove,
-    serverTimestamp, query, orderBy,
-    ref, uploadString, getDownloadURL
-  };
-} catch(e) {
-  console.warn('Firebase load error:', e);
-  window._fb = null;
-}
-window._fbReady = true;
-document.dispatchEvent(new Event('fb-ready'));
-</script>
-
 <style>
 :root{
-  --cream:#faf7f2; --warm:#fff9f5;
-  --blush:#f4b8c1; --rose:#e8718a;
-  --deep:#c4405a;  --wine:#7a1f3a;
-  --dust:#c9b8b0;  --ink:#2c1a1f;
-  --muted:#7a6068; --card:#ffffff;
-  --sh:rgba(122,31,58,.11);
-  --back: cubic-bezier(.34,1.56,.64,1);
-  --smooth: cubic-bezier(.4,0,.2,1);
+  --cream:#faf7f2;--warm:#fff9f5;--blush:#f4b8c1;--rose:#e8718a;
+  --deep:#c4405a;--wine:#7a1f3a;--dust:#c9b8b0;--ink:#2c1a1f;
+  --muted:#7a6068;--card:#fff;--sh:rgba(122,31,58,.11);
+  --back:cubic-bezier(.34,1.56,.64,1);--smooth:cubic-bezier(.4,0,.2,1);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
 body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh;overflow-x:hidden;}
-.bg-blob{position:fixed;border-radius:50%;pointer-events:none;z-index:0;animation:blobDrift 20s ease-in-out infinite alternate;}
+.bg-blob{position:fixed;border-radius:50%;pointer-events:none;z-index:0;animation:blob 20s ease-in-out infinite alternate;}
 .bg-blob:nth-child(1){width:650px;height:650px;top:-220px;left:-180px;background:radial-gradient(circle,rgba(244,184,193,.26) 0%,transparent 70%);}
-.bg-blob:nth-child(2){width:480px;height:480px;bottom:-160px;right:-140px;background:radial-gradient(circle,rgba(232,113,138,.17) 0%,transparent 70%);animation-delay:-10s;animation-duration:16s;}
-.bg-blob:nth-child(3){width:300px;height:300px;top:40%;left:55%;background:radial-gradient(circle,rgba(201,184,176,.12) 0%,transparent 70%);animation-delay:-5s;animation-duration:24s;}
-@keyframes blobDrift{0%{transform:translate(0,0) scale(1);}50%{transform:translate(30px,25px) scale(1.05);}100%{transform:translate(-15px,45px) scale(.97);}}
-.spin-wrap{display:none!important;}
-.spin-wrap.gone{opacity:0;pointer-events:none;}
-.spinner{width:38px;height:38px;border-radius:50%;border:3px solid rgba(232,113,138,.18);border-top-color:var(--rose);animation:spin .75s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.spin-lbl{font-size:13px;color:var(--muted);font-weight:300;letter-spacing:.5px;}
-.auth-wrap{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:var(--cream);transition:opacity .48s var(--smooth),transform .48s var(--smooth);}
-.auth-wrap.out{opacity:0;transform:scale(.94) translateY(-14px);pointer-events:none;}
-.auth-wrap.gone{display:none;}
-.auth-card{background:var(--card);border-radius:28px;padding:52px 48px 44px;width:430px;max-width:95vw;position:relative;overflow:hidden;box-shadow:0 24px 80px var(--sh),0 4px 22px rgba(0,0,0,.06);animation:cardIn .55s var(--back) both;}
-@keyframes cardIn{from{opacity:0;transform:translateY(30px) scale(.95);}to{opacity:1;transform:none;}}
-.auth-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blush) 0%,var(--rose) 50%,var(--deep) 100%);background-size:200% 100%;animation:topBar 3s linear infinite;}
-@keyframes topBar{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
-.auth-logo{font-family:'Cormorant Garamond',serif;font-size:30px;color:var(--wine);margin-bottom:4px;letter-spacing:-.2px;}
+.bg-blob:nth-child(2){width:480px;height:480px;bottom:-160px;right:-140px;background:radial-gradient(circle,rgba(232,113,138,.17) 0%,transparent 70%);animation-delay:-10s;}
+@keyframes blob{0%{transform:translate(0,0) scale(1);}100%{transform:translate(-15px,45px) scale(.97);}}
+
+/* ── AUTH ── */
+.auth-wrap{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:var(--cream);transition:opacity .45s,transform .45s;}
+.auth-wrap.hide{opacity:0;transform:scale(.95);pointer-events:none;}
+.auth-card{background:var(--card);border-radius:28px;padding:52px 48px 44px;width:430px;max-width:95vw;position:relative;overflow:hidden;box-shadow:0 24px 80px var(--sh),0 4px 22px rgba(0,0,0,.06);}
+.auth-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blush),var(--rose),var(--deep));background-size:200%;animation:bar 3s linear infinite;}
+@keyframes bar{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+.auth-logo{font-family:'Cormorant Garamond',serif;font-size:30px;color:var(--wine);margin-bottom:4px;}
 .auth-logo em{font-style:italic;color:var(--rose);}
-.auth-tag{font-size:13px;color:var(--muted);margin-bottom:30px;font-weight:300;}
-.fl{position:relative;margin-bottom:18px;}
-.fl label{position:absolute;top:13px;left:15px;font-size:13px;color:var(--dust);transition:all .22s var(--smooth);pointer-events:none;}
-.fl input:focus~label,.fl input:not(:placeholder-shown)~label{top:-8px;left:10px;font-size:10px;font-weight:500;background:white;padding:0 5px;border-radius:4px;color:var(--rose);text-transform:uppercase;letter-spacing:.8px;}
-.fl input{width:100%;padding:13px 15px;border:1.5px solid #ecddd9;border-radius:11px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);background:var(--warm);outline:none;transition:border-color .25s,box-shadow .25s,background .25s;}
-.fl input:focus{border-color:var(--rose);background:white;box-shadow:0 0 0 4px rgba(232,113,138,.1);}
-.fl input::placeholder{color:transparent;}
-.auth-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--rose),var(--deep));border:none;border-radius:11px;color:white;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;letter-spacing:.3px;box-shadow:0 5px 20px rgba(196,64,90,.32);transition:transform .22s var(--back),box-shadow .25s;position:relative;overflow:hidden;margin-top:2px;}
-.auth-btn::before{content:'';position:absolute;top:-50%;left:-70%;width:45%;height:200%;background:rgba(255,255,255,.22);transform:skewX(-18deg);transition:left .55s;}
-.auth-btn:hover{transform:translateY(-2px) scale(1.01);box-shadow:0 9px 30px rgba(196,64,90,.44);}
+.auth-tag{font-size:13px;color:var(--muted);margin-bottom:28px;font-weight:300;}
+.auth-lbl{display:block;font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.auth-inp{width:100%;padding:13px 15px;border:1.5px solid #ecddd9;border-radius:11px;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--ink);background:var(--warm);outline:none;margin-bottom:16px;transition:border-color .2s,box-shadow .2s;}
+.auth-inp:focus{border-color:var(--rose);box-shadow:0 0 0 4px rgba(232,113,138,.1);background:#fff;}
+.auth-btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--rose),var(--deep));border:none;border-radius:11px;color:#fff;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;box-shadow:0 5px 20px rgba(196,64,90,.32);transition:transform .2s,box-shadow .2s;position:relative;overflow:hidden;}
+.auth-btn::before{content:'';position:absolute;top:-50%;left:-70%;width:45%;height:200%;background:rgba(255,255,255,.22);transform:skewX(-18deg);transition:left .5s;}
+.auth-btn:hover{transform:translateY(-2px);box-shadow:0 9px 28px rgba(196,64,90,.44);}
 .auth-btn:hover::before{left:130%;}
-.auth-btn:active{transform:scale(.97);transition-duration:.08s;}
-.auth-btn.busy{pointer-events:none;filter:brightness(.8);}
-.auth-btn.busy::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 25%,rgba(255,255,255,.22) 50%,transparent 75%);background-size:200% 100%;animation:busySweep 1.1s linear infinite;}
-@keyframes busySweep{from{background-position:200% 0;}to{background-position:-200% 0;}}
-.auth-err{background:#fde8ec;border:1px solid #f4b8c1;border-radius:9px;padding:10px 14px;font-size:13px;color:var(--wine);margin-bottom:15px;display:none;animation:shake .38s ease;}
-.auth-err.on{display:block;}
-@keyframes shake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-6px);}40%,80%{transform:translateX(6px);}}
-#app{position:relative;z-index:1;min-height:100vh;opacity:0;transition:opacity .5s var(--smooth);}
-#app.on{opacity:1;}
-.nav{background:rgba(255,255,255,.86);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(201,184,176,.26);padding:0 40px;height:66px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;transition:box-shadow .3s;}
+.auth-btn:active{transform:scale(.97);}
+.auth-err{background:#fde8ec;border:1px solid #f4b8c1;border-radius:9px;padding:10px 14px;font-size:13px;color:var(--wine);margin-bottom:14px;display:none;}
+.auth-err.show{display:block;animation:shake .35s ease;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+
+/* ── APP ── */
+#app{position:relative;z-index:1;min-height:100vh;display:none;}
+#app.on{display:block;animation:fadeIn .4s ease;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+
+/* ── NAV ── */
+.nav{background:rgba(255,255,255,.88);backdrop-filter:blur(20px);border-bottom:1px solid rgba(201,184,176,.26);padding:0 40px;height:66px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
 .nav.scrolled{box-shadow:0 4px 32px rgba(122,31,58,.1);}
-.nav-brand{font-family:'Cormorant Garamond',serif;font-size:23px;color:var(--wine);letter-spacing:-.2px;cursor:pointer;transition:color .2s,transform .2s var(--back);display:inline-block;}
+.nav-brand{font-family:'Cormorant Garamond',serif;font-size:23px;color:var(--wine);cursor:pointer;transition:color .2s;}
 .nav-brand em{font-style:italic;color:var(--rose);}
-.nav-brand:hover{color:var(--rose);transform:scale(1.02);}
+.nav-brand:hover{color:var(--rose);}
 .nav-r{display:flex;align-items:center;gap:10px;}
-.nav-pill{display:flex;align-items:center;gap:9px;background:none;border:1.5px solid #ecddd9;border-radius:100px;padding:5px 16px 5px 5px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .25s var(--back);position:relative;overflow:hidden;}
-.nav-pill::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(244,184,193,.2),rgba(232,113,138,.09));opacity:0;transition:opacity .25s;}
-.nav-pill:hover{border-color:var(--rose);transform:translateY(-1px) scale(1.01);}
-.nav-pill:hover::before{opacity:1;}
-.nav-pill:active{transform:scale(.97);}
-.nav-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:white;flex-shrink:0;overflow:hidden;transition:transform .25s var(--back);position:relative;z-index:1;}
-.nav-pill:hover .nav-av{transform:scale(1.12) rotate(3deg);}
+.nav-pill{display:flex;align-items:center;gap:9px;background:none;border:1.5px solid #ecddd9;border-radius:100px;padding:5px 16px 5px 5px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;}
+.nav-pill:hover{border-color:var(--rose);transform:translateY(-1px);}
+.nav-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex-shrink:0;overflow:hidden;transition:transform .2s;}
+.nav-pill:hover .nav-av{transform:scale(1.1) rotate(3deg);}
 .nav-av img{width:100%;height:100%;object-fit:cover;}
-.nav-name{font-size:13px;font-weight:500;color:var(--ink);position:relative;z-index:1;}
-.nav-out{padding:8px 16px;background:transparent;border:1.5px solid #ecddd9;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .22s var(--back);}
-.nav-out:hover{border-color:var(--rose);color:var(--rose);background:rgba(232,113,138,.05);transform:translateY(-1px);}
-.nav-out:active{transform:scale(.96);}
+.nav-name{font-size:13px;font-weight:500;color:var(--ink);}
+.nav-out{padding:8px 16px;background:transparent;border:1.5px solid #ecddd9;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .2s;}
+.nav-out:hover{border-color:var(--rose);color:var(--rose);transform:translateY(-1px);}
+
+/* ── HERO ── */
 .hero{text-align:center;padding:62px 20px 42px;position:relative;z-index:1;}
-.hero-greet{font-size:11px;font-weight:500;color:var(--rose);text-transform:uppercase;letter-spacing:2.5px;margin-bottom:12px;animation:riseUp .6s .1s both;}
-.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(38px,6vw,62px);color:var(--wine);line-height:1.1;margin-bottom:14px;letter-spacing:-.4px;animation:riseUp .6s .2s both;}
+.hero-greet{font-size:11px;font-weight:500;color:var(--rose);text-transform:uppercase;letter-spacing:2.5px;margin-bottom:12px;}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(38px,6vw,62px);color:var(--wine);line-height:1.1;margin-bottom:14px;}
 .hero-title em{font-style:italic;color:var(--rose);}
-.hero-sub{font-size:14px;color:var(--muted);font-weight:300;max-width:400px;margin:0 auto;line-height:1.8;animation:riseUp .6s .3s both;}
-@keyframes riseUp{from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:none;}}
-.up-panel{max-width:600px;margin:0 auto 50px;padding:0 20px;animation:riseUp .6s .4s both;position:relative;z-index:1;}
-.up-card{background:white;border-radius:22px;padding:34px;box-shadow:0 8px 40px var(--sh);border:1px solid rgba(244,184,193,.2);transition:box-shadow .35s,transform .35s var(--back);}
+.hero-sub{font-size:14px;color:var(--muted);font-weight:300;max-width:400px;margin:0 auto;line-height:1.8;}
+
+/* ── UPLOAD ── */
+.up-panel{max-width:600px;margin:0 auto 50px;padding:0 20px;position:relative;z-index:1;}
+.up-card{background:#fff;border-radius:22px;padding:34px;box-shadow:0 8px 40px var(--sh);border:1px solid rgba(244,184,193,.2);transition:box-shadow .3s,transform .3s;}
 .up-card:focus-within{box-shadow:0 14px 56px rgba(122,31,58,.17);transform:translateY(-2px);}
 .up-ttl{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--wine);margin-bottom:20px;}
-.dz{border:2px dashed #ecddd9;border-radius:14px;padding:30px 20px;text-align:center;cursor:pointer;background:var(--warm);position:relative;margin-bottom:14px;transition:border-color .25s,background .25s,transform .3s var(--back);}
+.dz{border:2px dashed #ecddd9;border-radius:14px;padding:30px 20px;text-align:center;cursor:pointer;background:var(--warm);position:relative;margin-bottom:14px;transition:all .25s;}
 .dz:hover,.dz.drag{border-color:var(--rose);background:rgba(244,184,193,.07);transform:scale(1.01);}
 .dz input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
-.dz-ico{font-size:30px;margin-bottom:7px;display:block;transition:transform .35s var(--back);}
-.dz:hover .dz-ico{transform:scale(1.25) rotate(-8deg);}
+.dz-ico{font-size:30px;margin-bottom:7px;display:block;transition:transform .3s;}
+.dz:hover .dz-ico{transform:scale(1.2) rotate(-8deg);}
 .dz-txt{font-size:13px;color:var(--muted);}
-.dz-txt strong{color:var(--rose);font-weight:500;}
-.dz-prev{display:none;max-width:100%;max-height:170px;border-radius:10px;margin:0 auto 10px;object-fit:cover;animation:photoIn .38s var(--back);}
-@keyframes photoIn{from{opacity:0;transform:scale(.88);}to{opacity:1;transform:none;}}
-.cap{width:100%;padding:12px 15px;border:1.5px solid #ecddd9;border-radius:11px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);background:var(--warm);resize:vertical;min-height:80px;outline:none;transition:border-color .25s,box-shadow .25s,background .25s;margin-bottom:14px;}
-.cap:focus{border-color:var(--rose);background:white;box-shadow:0 0 0 4px rgba(232,113,138,.1);}
+.dz-txt strong{color:var(--rose);}
+.dz-prev{display:none;max-width:100%;max-height:170px;border-radius:10px;margin:0 auto 10px;object-fit:cover;}
+.cap{width:100%;padding:12px 15px;border:1.5px solid #ecddd9;border-radius:11px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);background:var(--warm);resize:vertical;min-height:80px;outline:none;transition:border-color .2s,box-shadow .2s;margin-bottom:14px;}
+.cap:focus{border-color:var(--rose);background:#fff;box-shadow:0 0 0 4px rgba(232,113,138,.1);}
 .cap::placeholder{color:#c9b8b0;}
-.post-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--rose),var(--deep));border:none;border-radius:11px;color:white;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;letter-spacing:.3px;box-shadow:0 5px 20px rgba(196,64,90,.28);display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .22s var(--back),box-shadow .25s;position:relative;overflow:hidden;}
-.post-btn::before{content:'';position:absolute;top:-50%;left:-70%;width:45%;height:200%;background:rgba(255,255,255,.2);transform:skewX(-18deg);transition:left .55s;}
-.post-btn:hover{transform:translateY(-2px) scale(1.01);box-shadow:0 9px 30px rgba(196,64,90,.42);}
+.post-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--rose),var(--deep));border:none;border-radius:11px;color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;box-shadow:0 5px 20px rgba(196,64,90,.28);display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .2s,box-shadow .2s;position:relative;overflow:hidden;}
+.post-btn::before{content:'';position:absolute;top:-50%;left:-70%;width:45%;height:200%;background:rgba(255,255,255,.2);transform:skewX(-18deg);transition:left .5s;}
+.post-btn:hover{transform:translateY(-2px);box-shadow:0 9px 28px rgba(196,64,90,.42);}
 .post-btn:hover::before{left:130%;}
-.post-btn:active{transform:scale(.97);transition-duration:.08s;}
+.post-btn:active{transform:scale(.97);}
+
+/* ── GALLERY ── */
 .gal-sec{max-width:1080px;margin:0 auto;padding:0 22px 70px;position:relative;z-index:1;}
 .gal-hdr{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:28px;padding-bottom:14px;border-bottom:1px solid rgba(201,184,176,.3);}
 .gal-ttl{font-family:'Cormorant Garamond',serif;font-size:27px;color:var(--wine);}
 .mem-cnt{font-size:13px;color:var(--muted);}
 .gal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:22px;}
-.mc{background:white;border-radius:18px;overflow:hidden;box-shadow:0 4px 22px var(--sh);border:1px solid rgba(244,184,193,.14);transition:transform .35s var(--back),box-shadow .35s var(--smooth);animation:cardRise .5s var(--back) both;position:relative;}
-@keyframes cardRise{from{opacity:0;transform:translateY(26px) scale(.95);}to{opacity:1;transform:none;}}
+
+/* ── CARD ── */
+.mc{background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 4px 22px var(--sh);border:1px solid rgba(244,184,193,.14);transition:transform .35s var(--back),box-shadow .35s;animation:rise .5s var(--back) both;}
+@keyframes rise{from{opacity:0;transform:translateY(26px) scale(.95);}to{opacity:1;transform:none;}}
 .mc:hover{transform:translateY(-7px) scale(1.015);box-shadow:0 20px 56px rgba(122,31,58,.22);}
 .mc-img-box{position:relative;overflow:hidden;height:210px;cursor:zoom-in;}
 .mc-img-box::after{content:'🔍';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:28px;background:rgba(44,26,31,.34);opacity:0;transition:opacity .28s;}
 .mc:hover .mc-img-box::after{opacity:1;}
-.mc-img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s var(--smooth);}
+.mc-img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s;}
 .mc:hover .mc-img{transform:scale(1.06);}
 .mc-body{padding:15px;}
-.mc-who{display:flex;align-items:center;gap:8px;margin-bottom:9px;cursor:pointer;padding:4px 6px;border-radius:8px;margin-left:-6px;transition:background .22s;}
+.mc-who{display:flex;align-items:center;gap:8px;margin-bottom:9px;cursor:pointer;padding:4px 6px;border-radius:8px;margin-left:-6px;transition:background .2s;}
 .mc-who:hover{background:rgba(244,184,193,.14);}
 .mc-who:hover .mc-name{color:var(--rose);}
-.mc-av{width:29px;height:29px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:white;flex-shrink:0;overflow:hidden;transition:transform .28s var(--back);}
+.mc-av{width:29px;height:29px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0;overflow:hidden;transition:transform .25s var(--back);}
 .mc-who:hover .mc-av{transform:scale(1.15) rotate(4deg);}
 .mc-av img{width:100%;height:100%;object-fit:cover;}
 .mc-name{font-size:12px;font-weight:500;color:var(--ink);transition:color .2s;}
 .mc-date{font-size:11px;color:var(--dust);margin-left:auto;}
 .mc-cap{font-size:13px;color:var(--muted);line-height:1.7;font-weight:300;}
 .mc-acts{display:flex;align-items:center;gap:6px;margin-top:12px;padding-top:12px;border-top:1px solid #f5eeeb;}
-.act{background:none;border:none;cursor:pointer;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px;padding:5px 9px;border-radius:20px;font-family:'DM Sans',sans-serif;transition:all .22s var(--back);}
+.act{background:none;border:none;cursor:pointer;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px;padding:5px 9px;border-radius:20px;font-family:'DM Sans',sans-serif;transition:all .2s var(--back);}
 .act:hover{background:rgba(244,184,193,.2);color:var(--rose);transform:scale(1.06);}
 .act:active{transform:scale(.94);}
 .act.liked{color:var(--rose);}
 .heart{display:inline-block;}
 .act.liked .heart{animation:heartPop .42s var(--back);}
 @keyframes heartPop{0%{transform:scale(1);}35%{transform:scale(1.6);}65%{transform:scale(.82);}100%{transform:scale(1);}}
-.del{background:none;border:none;cursor:pointer;font-size:11px;color:#d4b8be;margin-left:auto;padding:5px 9px;border-radius:7px;transition:all .2s var(--back);font-family:'DM Sans',sans-serif;}
+.del{background:none;border:none;cursor:pointer;font-size:11px;color:#d4b8be;margin-left:auto;padding:5px 9px;border-radius:7px;transition:all .2s;font-family:'DM Sans',sans-serif;}
 .del:hover{color:var(--deep);background:rgba(244,184,193,.15);transform:scale(1.08);}
-.del:active{transform:scale(.93);}
-.cs{border-top:1px solid #f5eeeb;max-height:0;overflow:hidden;transition:max-height .42s var(--smooth);}
+
+/* ── COMMENTS ── */
+.cs{border-top:1px solid #f5eeeb;max-height:0;overflow:hidden;transition:max-height .4s var(--smooth);}
 .cs.open{max-height:700px;}
 .cs-inner{padding:13px 15px 15px;}
-.ci{display:flex;gap:9px;margin-bottom:11px;animation:cmtSlide .3s var(--back) both;}
-@keyframes cmtSlide{from{opacity:0;transform:translateX(-10px);}to{opacity:1;transform:none;}}
-.ci-av{width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:white;overflow:hidden;margin-top:2px;transition:transform .22s var(--back);}
-.ci:hover .ci-av{transform:scale(1.12);}
+.ci{display:flex;gap:9px;margin-bottom:11px;animation:cmtIn .3s var(--back) both;}
+@keyframes cmtIn{from{opacity:0;transform:translateX(-10px);}to{opacity:1;transform:none;}}
+.ci-av{width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#fff;overflow:hidden;margin-top:2px;}
 .ci-av img{width:100%;height:100%;object-fit:cover;}
 .ci-bub{background:var(--warm);border-radius:0 12px 12px 12px;padding:8px 12px;flex:1;transition:background .2s;}
 .ci:hover .ci-bub{background:#f4ece8;}
@@ -192,63 +143,63 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
 .ci-time{font-size:10px;color:var(--dust);margin-top:3px;}
 .ci-del{background:none;border:none;cursor:pointer;font-size:10px;color:var(--dust);padding:3px 6px;border-radius:5px;transition:all .18s;flex-shrink:0;margin-top:4px;font-family:'DM Sans',sans-serif;}
 .ci-del:hover{color:var(--deep);background:rgba(244,184,193,.15);}
-.no-ci{font-size:12px;color:var(--dust);text-align:center;padding:8px 0 4px;animation:riseUp .3s both;}
+.no-ci{font-size:12px;color:var(--dust);text-align:center;padding:8px 0 4px;}
 .ci-form{display:flex;gap:8px;align-items:center;margin-top:9px;}
-.ci-inp{flex:1;padding:8px 13px;border:1.5px solid #ecddd9;border-radius:20px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--ink);background:var(--warm);outline:none;transition:border-color .22s,box-shadow .22s,background .22s;}
-.ci-inp:focus{border-color:var(--rose);background:white;box-shadow:0 0 0 3px rgba(232,113,138,.1);}
-.ci-send{padding:7px 14px;background:var(--rose);border:none;border-radius:20px;color:white;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;transition:background .2s,transform .22s var(--back);}
+.ci-inp{flex:1;padding:8px 13px;border:1.5px solid #ecddd9;border-radius:20px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--ink);background:var(--warm);outline:none;transition:border-color .2s,box-shadow .2s;}
+.ci-inp:focus{border-color:var(--rose);background:#fff;box-shadow:0 0 0 3px rgba(232,113,138,.1);}
+.ci-send{padding:7px 14px;background:var(--rose);border:none;border-radius:20px;color:#fff;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:background .2s,transform .2s;}
 .ci-send:hover{background:var(--deep);transform:scale(1.06);}
-.ci-send:active{transform:scale(.93);}
-.overlay{position:fixed;inset:0;background:rgba(44,26,31,.5);z-index:150;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s var(--smooth);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);}
+
+/* ── MODALS ── */
+.overlay{position:fixed;inset:0;background:rgba(44,26,31,.5);z-index:150;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(5px);}
 .overlay.open{opacity:1;pointer-events:all;}
-.modal{background:white;border-radius:24px;padding:40px;width:470px;max-width:95vw;max-height:92vh;overflow-y:auto;box-shadow:0 30px 80px rgba(122,31,58,.24);transform:translateY(24px) scale(.96);transition:transform .38s var(--back);position:relative;}
+.modal{background:#fff;border-radius:24px;padding:40px;width:470px;max-width:95vw;max-height:92vh;overflow-y:auto;box-shadow:0 30px 80px rgba(122,31,58,.24);transform:translateY(24px) scale(.96);transition:transform .35s var(--back);position:relative;}
 .overlay.open .modal{transform:none;}
-.m-x{position:absolute;top:18px;right:18px;background:none;border:none;font-size:18px;cursor:pointer;color:var(--dust);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .22s var(--back);}
-.m-x:hover{color:var(--rose);background:rgba(232,113,138,.1);transform:rotate(90deg) scale(1.1);}
+.m-x{position:absolute;top:18px;right:18px;background:none;border:none;font-size:18px;cursor:pointer;color:var(--dust);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.m-x:hover{color:var(--rose);background:rgba(232,113,138,.1);transform:rotate(90deg);}
 .m-ttl{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--wine);margin-bottom:4px;}
 .m-sub{font-size:13px;color:var(--muted);margin-bottom:26px;font-weight:300;}
 .av-row{display:flex;align-items:center;gap:18px;margin-bottom:22px;}
-.av-lg{width:74px;height:74px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:600;color:white;flex-shrink:0;overflow:hidden;position:relative;cursor:pointer;transition:transform .28s var(--back),box-shadow .25s;}
+.av-lg{width:74px;height:74px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:600;color:#fff;flex-shrink:0;overflow:hidden;position:relative;cursor:pointer;transition:transform .25s var(--back),box-shadow .25s;}
 .av-lg:hover{transform:scale(1.07);box-shadow:0 7px 24px rgba(122,31,58,.26);}
 .av-lg img{width:100%;height:100%;object-fit:cover;}
 .av-ov{position:absolute;inset:0;background:rgba(0,0,0,.42);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;border-radius:50%;font-size:18px;}
 .av-lg:hover .av-ov{opacity:1;}
 .av-lg input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
 .swatches{display:flex;flex-wrap:wrap;gap:8px;}
-.sw{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2.5px solid transparent;transition:transform .22s var(--back),border-color .15s,box-shadow .2s;}
+.sw{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2.5px solid transparent;transition:transform .2s var(--back),border-color .15s,box-shadow .2s;}
 .sw:hover{transform:scale(1.22);}
 .sw.on{border-color:var(--wine);transform:scale(1.12);box-shadow:0 2px 9px rgba(122,31,58,.3);}
 .p-fld{margin-bottom:16px;}
 .p-lbl{display:block;font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
-.p-in{width:100%;padding:12px 15px;border:1.5px solid #ecddd9;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);background:var(--warm);outline:none;transition:border-color .22s,box-shadow .22s,background .22s;}
-.p-in:focus{border-color:var(--rose);background:white;box-shadow:0 0 0 3px rgba(232,113,138,.1);}
-.p-bio{width:100%;padding:12px 15px;border:1.5px solid #ecddd9;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);background:var(--warm);outline:none;resize:vertical;min-height:78px;transition:border-color .22s,box-shadow .22s,background .22s;}
-.p-bio:focus{border-color:var(--rose);background:white;box-shadow:0 0 0 3px rgba(232,113,138,.1);}
-.save-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--rose),var(--deep));border:none;border-radius:11px;color:white;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;box-shadow:0 5px 20px rgba(196,64,90,.3);transition:transform .22s var(--back),box-shadow .25s;}
+.p-in{width:100%;padding:12px 15px;border:1.5px solid #ecddd9;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);background:var(--warm);outline:none;transition:border-color .2s,box-shadow .2s;}
+.p-in:focus{border-color:var(--rose);background:#fff;box-shadow:0 0 0 3px rgba(232,113,138,.1);}
+.p-bio{width:100%;padding:12px 15px;border:1.5px solid #ecddd9;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);background:var(--warm);outline:none;resize:vertical;min-height:78px;transition:border-color .2s,box-shadow .2s;}
+.p-bio:focus{border-color:var(--rose);background:#fff;box-shadow:0 0 0 3px rgba(232,113,138,.1);}
+.save-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--rose),var(--deep));border:none;border-radius:11px;color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;box-shadow:0 5px 20px rgba(196,64,90,.3);transition:transform .2s,box-shadow .2s;}
 .save-btn:hover{transform:translateY(-2px);box-shadow:0 9px 28px rgba(196,64,90,.42);}
 .save-btn:active{transform:scale(.97);}
-.vp-av{width:84px;height:84px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:600;color:white;overflow:hidden;box-shadow:0 7px 26px rgba(122,31,58,.24);transition:transform .3s var(--back);cursor:default;}
-.vp-av:hover{transform:scale(1.07);}
+.vp-av{width:84px;height:84px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:600;color:#fff;overflow:hidden;box-shadow:0 7px 26px rgba(122,31,58,.24);}
 .vp-av img{width:100%;height:100%;object-fit:cover;}
-.lbox{position:fixed;inset:0;background:rgba(20,10,14,.92);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .35s var(--smooth);cursor:zoom-out;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
+
+/* ── LIGHTBOX ── */
+.lbox{position:fixed;inset:0;background:rgba(20,10,14,.92);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .35s;cursor:zoom-out;backdrop-filter:blur(10px);}
 .lbox.open{opacity:1;pointer-events:all;}
-.lbox img{max-width:90vw;max-height:88vh;border-radius:12px;box-shadow:0 0 80px rgba(0,0,0,.65);transform:scale(.9);transition:transform .42s var(--back);}
+.lbox img{max-width:90vw;max-height:88vh;border-radius:12px;box-shadow:0 0 80px rgba(0,0,0,.65);transform:scale(.9);transition:transform .4s var(--back);}
 .lbox.open img{transform:scale(1);}
-.empty{text-align:center;padding:60px 20px;grid-column:1/-1;animation:riseUp .5s both;}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:60px 20px;grid-column:1/-1;}
 .empty-ico{font-size:52px;margin-bottom:14px;animation:float 3.5s ease-in-out infinite;}
 @keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
 .empty-ttl{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--wine);margin-bottom:6px;}
 .empty-sub{font-size:13px;color:var(--muted);font-weight:300;}
-.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(90px);background:var(--wine);color:white;padding:12px 24px;border-radius:100px;font-size:13px;font-weight:500;z-index:999;white-space:nowrap;box-shadow:0 8px 30px rgba(122,31,58,.42);transition:transform .42s var(--back);}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(90px);background:var(--wine);color:#fff;padding:12px 24px;border-radius:100px;font-size:13px;font-weight:500;z-index:999;white-space:nowrap;box-shadow:0 8px 30px rgba(122,31,58,.42);transition:transform .4s var(--back);}
 .toast.show{transform:translateX(-50%) translateY(0);}
-.fb-badge{position:fixed;top:74px;left:50%;transform:translateX(-50%) translateY(-14px);z-index:100;padding:8px 20px;border-radius:100px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:7px;opacity:0;pointer-events:none;transition:opacity .35s,transform .35s var(--back);}
-.fb-badge.show{opacity:1;transform:translateX(-50%) translateY(0);}
-.fb-badge.live{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;}
-.fb-badge.demo{background:#fff8e1;color:#f57f17;border:1px solid #ffe082;}
-.fb-dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:fbPulse 1.8s ease-in-out infinite;}
-@keyframes fbPulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.35;transform:scale(.7);}}
+
 ::-webkit-scrollbar{width:5px;}
-::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--blush);border-radius:10px;}
 ::-webkit-scrollbar-thumb:hover{background:var(--rose);}
 </style>
@@ -257,75 +208,62 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
 
 <div class="bg-blob"></div>
 <div class="bg-blob"></div>
-<div class="bg-blob"></div>
 
-<div class="spin-wrap" id="spinWrap">
-  <div class="spinner"></div>
-  <div class="spin-lbl">Loading your circle…</div>
-</div>
-
-<div class="fb-badge" id="fbBadge">
-  <span class="fb-dot"></span>
-  <span id="fbBadgeTxt"></span>
-</div>
-
-<!-- LOGIN -->
+<!-- ══ LOGIN ══ -->
 <div class="auth-wrap" id="loginWrap">
-<div class="auth-card">
-  <div class="auth-logo">Circle of <em>Memories</em></div>
-  <div class="auth-tag">Your shared space for beautiful moments</div>
-  <div class="auth-err" id="loginErr"></div>
-  <div class="fl"><input type="text" id="loginUser" placeholder=" " autocomplete="off"><label>Username</label></div>
-  <div class="fl"><input type="password" id="loginPw" placeholder=" "><label>Password</label></div>
-  <button class="auth-btn" id="loginBtn" onclick="doLogin()">Sign In →</button>
-</div>
+  <div class="auth-card">
+    <div class="auth-logo">Circle of <em>Memories</em></div>
+    <div class="auth-tag">Your shared space for beautiful moments</div>
+    <div class="auth-err" id="loginErr"></div>
+    <label class="auth-lbl">Username</label>
+    <input class="auth-inp" type="text" id="loginUser" autocomplete="off" placeholder="Enter username">
+    <label class="auth-lbl">Password</label>
+    <input class="auth-inp" type="password" id="loginPw" placeholder="Enter password">
+    <button class="auth-btn" onclick="doLogin()">Sign In →</button>
+  </div>
 </div>
 
-<!-- VIEW PROFILE -->
+<!-- ══ VIEW PROFILE ══ -->
 <div class="overlay" id="vpOverlay" onclick="if(event.target===this)closeVP()">
-<div class="modal" style="text-align:center;padding:42px 38px;">
-  <button class="m-x" onclick="closeVP()">✕</button>
-  <div class="vp-av" id="vpAv"></div>
-  <div id="vpName" style="font-family:'Cormorant Garamond',serif;font-size:25px;color:var(--wine);margin-bottom:3px;"></div>
-  <div id="vpHandle" style="font-size:12px;color:var(--dust);margin-bottom:13px;letter-spacing:.3px;"></div>
-  <div id="vpBio" style="font-size:14px;color:var(--muted);font-weight:300;line-height:1.8;max-width:300px;margin:0 auto 22px;"></div>
-  <div id="vpStats" style="display:flex;gap:36px;justify-content:center;padding-top:18px;border-top:1px solid #f5eeeb;"></div>
-</div>
+  <div class="modal" style="text-align:center;padding:42px 38px;">
+    <button class="m-x" onclick="closeVP()">✕</button>
+    <div class="vp-av" id="vpAv"></div>
+    <div id="vpName" style="font-family:'Cormorant Garamond',serif;font-size:25px;color:var(--wine);margin-bottom:3px;"></div>
+    <div id="vpHandle" style="font-size:12px;color:var(--dust);margin-bottom:13px;"></div>
+    <div id="vpBio" style="font-size:14px;color:var(--muted);font-weight:300;line-height:1.8;max-width:300px;margin:0 auto 22px;"></div>
+    <div id="vpStats" style="display:flex;gap:36px;justify-content:center;padding-top:18px;border-top:1px solid #f5eeeb;"></div>
+  </div>
 </div>
 
-<!-- EDIT PROFILE -->
+<!-- ══ EDIT PROFILE ══ -->
 <div class="overlay" id="editOverlay" onclick="if(event.target===this)closeEdit()">
-<div class="modal">
-  <button class="m-x" onclick="closeEdit()">✕</button>
-  <div class="m-ttl">Edit Profile</div>
-  <div class="m-sub">Personalize how you appear in the circle</div>
-  <div class="av-row">
-    <div class="av-lg" id="avPrev">
-      <div class="av-ov">📷</div>
-      <input type="file" accept="image/*" onchange="onAvUp(event)">
+  <div class="modal">
+    <button class="m-x" onclick="closeEdit()">✕</button>
+    <div class="m-ttl">Edit Profile</div>
+    <div class="m-sub">Personalize how you appear in the circle</div>
+    <div class="av-row">
+      <div class="av-lg" id="avPrev">
+        <div class="av-ov">📷</div>
+        <input type="file" accept="image/*" onchange="onAvUp(event)">
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:9px;font-weight:500;">Choose a colour</div>
+        <div class="swatches" id="swatches"></div>
+        <div style="font-size:11px;color:var(--dust);margin-top:7px;">Or click avatar to upload a photo</div>
+      </div>
     </div>
-    <div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:9px;font-weight:500;">Choose a colour</div>
-      <div class="swatches" id="swatches"></div>
-      <div style="font-size:11px;color:var(--dust);margin-top:7px;">Or click avatar to upload a photo</div>
-    </div>
+    <div class="p-fld"><label class="p-lbl">Display Name</label><input class="p-in" type="text" id="pName"></div>
+    <div class="p-fld"><label class="p-lbl">Bio</label><textarea class="p-bio" id="pBio" placeholder="Tell the circle about yourself..."></textarea></div>
+    <button class="save-btn" onclick="saveProfile()">Save Changes</button>
   </div>
-  <div class="p-fld"><label class="p-lbl">Display Name</label><input class="p-in" type="text" id="pName" placeholder="Your full name"></div>
-  <div class="p-fld"><label class="p-lbl">Bio</label><textarea class="p-bio" id="pBio" placeholder="Tell the circle a little about yourself…"></textarea></div>
-  <div class="p-fld">
-    <label class="p-lbl">New Password <span style="font-size:10px;text-transform:none;letter-spacing:0;font-weight:300;">(leave blank to keep current)</span></label>
-    <input class="p-in" type="password" id="pPw" placeholder="New password">
-  </div>
-  <button class="save-btn" id="saveBtn" onclick="saveProfile()">Save Changes</button>
-</div>
 </div>
 
-<!-- LIGHTBOX -->
+<!-- ══ LIGHTBOX ══ -->
 <div class="lbox" id="lbox" onclick="closeLbox()">
   <img id="lboxImg" src="" alt="Memory">
 </div>
 
-<!-- APP -->
+<!-- ══ APP ══ -->
 <div id="app">
   <nav class="nav" id="navBar">
     <div class="nav-brand" onclick="window.scrollTo({top:0,behavior:'smooth'})">Circle of <em>Memories</em></div>
@@ -373,97 +311,70 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
 <div class="toast" id="toast"></div>
 
 <script>
-/* ══════════════════════════════════════
-   ACCOUNTS — edit usernames & passwords here
-   uid must be unique per person
-══════════════════════════════════════ */
-const ACCOUNTS = [
+// ══════════════════════════════════════
+// ACCOUNTS — add / edit accounts here
+// ══════════════════════════════════════
+var ACCOUNTS = [
   { uid:'user_jeff',    username:'jeff',        password:'jeff092905',  name:'Jefferson Padua',     color:'#e8718a', bio:'' },
   { uid:'user_iwa',     username:'iwa',         password:'iwa123',      name:'Iwa Aishe Novelozo',  color:'#7c9fc4', bio:'' },
   { uid:'user_mima',    username:'mima',        password:'mima123',     name:'Jericho Villaluz',    color:'#a3c47c', bio:'' },
   { uid:'user_joseph',  username:'joseph',      password:'jb123',       name:'Joseph Lazaro',       color:'#c4405a', bio:'' },
-  { uid:'user_vincer',  username:'vincer',      password:'vincer123',   name:'Vincer Cañamales',    color:'#b47cc4', bio:'' },
+  { uid:'user_vincer',  username:'vincer',      password:'vincer123',   name:'Vincer Canamales',    color:'#b47cc4', bio:'' },
   { uid:'user_lablab',  username:'lablab',      password:'denife123',   name:'Denife Parcon',       color:'#6aab3e', bio:'' },
   { uid:'user_zyrich',  username:'zyrich',      password:'zyrich123',   name:'Zyrich Suarez',       color:'#7cc4c0', bio:'' },
-  { uid:'user_jp',      username:'johnpatrick', password:'jp123',       name:'John Patrick Magpoc', color:'#ab7c3e', bio:'' },
+  { uid:'user_jp',      username:'johnpatrick', password:'jp123',       name:'John Patrick Magpoc', color:'#ab7c3e', bio:'' }
 ];
 
-const COLORS = [
-  '#e8718a','#c4405a','#7c9fc4','#4a7dab',
-  '#a3c47c','#6aab3e','#c4a37c','#ab7c3e',
-  '#b47cc4','#8a4ab4','#7cc4c0','#3ea8ab'
-];
+var COLORS = ['#e8718a','#c4405a','#7c9fc4','#4a7dab','#a3c47c','#6aab3e','#c4a37c','#ab7c3e','#b47cc4','#8a4ab4','#7cc4c0','#3ea8ab'];
 
-let S = {
-  user: null, memories: [], nextCid: 1,
-  fbMode: false, unsub: null, tmpAv: null, tmpColor: null,
-  started: false
-};
+var currentUser = null;
+var memories    = [];
+var nextCid     = 1;
+var tmpAv       = null;
+var tmpColor    = null;
+var fbUnsub     = null;
+var fbMode      = false;
 
-/* ══ FIREBASE INIT ══ */
-function fbInit() {
-  // Hard escape: no matter what happens, show login within 3 seconds
-  const hardEscape = setTimeout(() => {
-    if (!S.started) { S.started = true; demoMode(); }
-  }, 3000);
-
-  function onReady() {
-    if (S.started) return;
-    S.started = true;
-    clearTimeout(hardEscape);
-    if (!window._fb) { demoMode(); return; }
-    S.fbMode = true;
-    badge('live', '🔥 Firebase connected');
-    hideSpin();
-    showLogin();
-  }
-
-  // Check immediately
-  if (window._fbReady) { onReady(); return; }
-  // Otherwise wait for the event
-  document.addEventListener('fb-ready', onReady, { once: true });
-}
-function demoMode() {
-  S.fbMode = false;
-  badge('demo', 'Running offline - data not saved');
-  hideSpin();
-  showLogin();
-}
-function showLogin() {
-  const lw = $id('loginWrap');
-  if (lw) { lw.classList.remove('gone','out'); }
-}
-async function loadProfile(uid) {
-  if (!S.fbMode || !window._fb) return null;
-  try {
-    const { db, doc, getDoc } = window._fb;
-    const snap = await getDoc(doc(db, 'profiles', uid));
-    return snap.exists() ? snap.data() : null;
-  } catch { return null; }
+// ── HELPERS ──
+function $id(id){ return document.getElementById(id); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function ini(n){ return n.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2); }
+function fmtDate(ts){ return ts ? new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : ''; }
+function fmtTime(ts){ return ts ? new Date(ts).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : ''; }
+function toast(msg){
+  var t = $id('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(function(){ t.classList.remove('show'); }, 2900);
 }
 
-/* ══ AUTH ══ */
-function doLogin() {
-  const username = val('loginUser'), pw = val('loginPw');
-  const err = $id('loginErr');
-  err.classList.remove('on');
+// ── LOGIN ──
+function doLogin(){
+  var username = ($id('loginUser').value || '').trim();
+  var pw       = ($id('loginPw').value   || '').trim();
+  var err      = $id('loginErr');
+  err.className = 'auth-err';
 
-  if (!username || !pw) {
-    showErr(err, 'Please fill in all fields.');
+  if(!username || !pw){
+    err.textContent = 'Please fill in both fields.';
+    err.className = 'auth-err show';
     return;
   }
 
-  const account = ACCOUNTS.find(a =>
-    a.username.toLowerCase() === username.toLowerCase() && a.password === pw
-  );
+  var account = null;
+  for(var i=0; i<ACCOUNTS.length; i++){
+    if(ACCOUNTS[i].username.toLowerCase() === username.toLowerCase() && ACCOUNTS[i].password === pw){
+      account = ACCOUNTS[i];
+      break;
+    }
+  }
 
-  if (!account) {
-    showErr(err, 'Incorrect username or password.');
+  if(!account){
+    err.textContent = 'Incorrect username or password.';
+    err.className = 'auth-err show';
     return;
   }
 
-  // Set user from hardcoded account immediately
-  S.user = {
+  currentUser = {
     uid:    account.uid,
     name:   account.name,
     bio:    account.bio || '',
@@ -471,60 +382,69 @@ function doLogin() {
     avatar: null
   };
 
-  // Try to load saved profile in background, then refresh UI
-  if (S.fbMode && window._fb) {
-    loadProfile(account.uid).then(saved => {
-      if (saved) {
-        S.user.name   = saved.name   || S.user.name;
-        S.user.bio    = saved.bio    || S.user.bio;
-        S.user.color  = saved.color  || S.user.color;
-        S.user.avatar = saved.avatar || null;
-        refreshNav(); refreshHero();
-      }
-    }).catch(() => {});
-  }
-
-  enterApp();
-}
-
-async function doLogout() {
-  if (S.unsub) { S.unsub(); S.unsub = null; }
-  S.user = null; S.memories = [];
-  $id('app').classList.remove('on');
-  showLogin();
-  toast('See you soon! 👋');
-}
-
-/* ══ APP ENTER ══ */
-function enterApp() {
-  const lw = $id('loginWrap');
-  lw.classList.add('out');
-  setTimeout(() => { lw.classList.add('gone'); lw.classList.remove('out'); }, 480);
+  // hide login, show app
+  $id('loginWrap').classList.add('hide');
   $id('app').classList.add('on');
-  refreshNav(); refreshHero();
-  if (S.fbMode) subscribeMemories();
-  else renderGallery();
-  toast(`Welcome back, ${S.user.name.split(' ')[0]}! 🌸`);
+  refreshNav();
+  refreshHero();
+  initFirebase();
+  toast('Welcome back, ' + currentUser.name.split(' ')[0] + '! \uD83C\uDF38');
 }
 
-/* ══ REALTIME ══ */
-function subscribeMemories() {
-  if (!S.fbMode || !window._fb) return;
-  const { db, collection, query, orderBy, onSnapshot } = window._fb;
-  const q = query(collection(db, 'memories'), orderBy('timestamp', 'desc'));
-  S.unsub = onSnapshot(q, snap => {
-    const open = {};
-    S.memories.forEach(m => { if (m.commentsOpen) open[m.id] = true; });
-    S.memories = snap.docs.map(d => ({ id: d.id, ...d.data(), commentsOpen: !!open[d.id] }));
+function doLogout(){
+  if(fbUnsub){ fbUnsub(); fbUnsub = null; }
+  currentUser = null; memories = [];
+  $id('app').classList.remove('on');
+  $id('loginWrap').classList.remove('hide');
+  $id('loginUser').value = '';
+  $id('loginPw').value   = '';
+  $id('loginErr').className = 'auth-err';
+  toast('See you soon! \uD83D\uDC4B');
+}
+
+// ── FIREBASE (loads after login) ──
+function initFirebase(){
+  if(!window._fb){ fbMode = false; renderGallery(); return; }
+  fbMode = true;
+  var fb = window._fb;
+  var q = fb.query(fb.collection(fb.db,'memories'), fb.orderBy('timestamp','desc'));
+  fbUnsub = fb.onSnapshot(q, function(snap){
+    var open = {};
+    memories.forEach(function(m){ if(m.commentsOpen) open[m.id]=true; });
+    memories = snap.docs.map(function(d){ return Object.assign({id:d.id},d.data(),{commentsOpen:!!open[d.id]}); });
     renderGallery();
-  }, e => console.warn('snapshot:', e));
+  }, function(e){ console.warn('FB error:',e); fbMode=false; renderGallery(); });
+
+  // load saved profile
+  fb.getDoc(fb.doc(fb.db,'profiles',currentUser.uid)).then(function(snap){
+    if(snap.exists()){
+      var p = snap.data();
+      currentUser.name   = p.name   || currentUser.name;
+      currentUser.bio    = p.bio    || currentUser.bio;
+      currentUser.color  = p.color  || currentUser.color;
+      currentUser.avatar = p.avatar || null;
+      refreshNav(); refreshHero();
+    }
+  }).catch(function(){});
 }
 
-/* ══ POST MEMORY ══ */
-function onPhoto(e) {
-  const f = e.target.files[0]; if (!f) return;
-  const r = new FileReader();
-  r.onload = ev => {
+// ── NAV / HERO ──
+function refreshNav(){
+  var av = $id('navAv');
+  av.style.background = currentUser.color;
+  av.innerHTML = currentUser.avatar ? '<img src="'+currentUser.avatar+'" alt="">' : ini(currentUser.name);
+  $id('navName').textContent = currentUser.name;
+}
+function refreshHero(){
+  $id('heroGreet').textContent = 'Welcome back, ' + currentUser.name.split(' ')[0];
+  $id('heroSub').textContent   = currentUser.bio || 'Upload photos, share captions, and relive the moments that matter most.';
+}
+
+// ── POST MEMORY ──
+function onPhoto(e){
+  var f = e.target.files[0]; if(!f) return;
+  var r = new FileReader();
+  r.onload = function(ev){
     $id('dzPrev').src = ev.target.result;
     $id('dzPrev').style.display = 'block';
     $id('dzIco').style.display  = 'none';
@@ -532,322 +452,321 @@ function onPhoto(e) {
   };
   r.readAsDataURL(f);
 }
-async function postMemory() {
-  const pi = $id('photoIn'), cap = val('capIn');
-  if (!pi.files.length) { toast('Please choose a photo first!'); return; }
-  const btn = $id('postBtn');
-  btn.textContent = '⏳ Uploading…'; btn.style.pointerEvents = 'none';
-  const reader = new FileReader();
-  reader.onload = async ev => {
-    const imgData = ev.target.result;
-    const mem = { author:{...S.user}, caption:cap||'A beautiful memory 🌸', likes:0, likedBy:[], comments:[] };
-    if (S.fbMode && window._fb) {
-      const { db, storage, collection, addDoc, serverTimestamp, ref, uploadString, getDownloadURL } = window._fb;
-      try {
-        const imgRef = ref(storage, `memories/${Date.now()}_${S.user.uid}`);
-        await uploadString(imgRef, imgData, 'data_url');
-        mem.image = await getDownloadURL(imgRef);
-        mem.storageRef = imgRef.fullPath;
-      } catch { mem.image = imgData; }
-      mem.timestamp = serverTimestamp();
-      await addDoc(collection(db, 'memories'), mem);
+
+function postMemory(){
+  var pi  = $id('photoIn');
+  var cap = ($id('capIn').value || '').trim();
+  if(!pi.files.length){ toast('Please choose a photo first!'); return; }
+  var btn = $id('postBtn');
+  btn.textContent = '\u23F3 Uploading\u2026'; btn.style.pointerEvents='none';
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    var imgData = ev.target.result;
+    var mem = {
+      author: {uid:currentUser.uid,name:currentUser.name,color:currentUser.color,avatar:currentUser.avatar},
+      caption: cap || 'A beautiful memory \uD83C\uDF38',
+      likes:0, likedBy:[], comments:[]
+    };
+    if(fbMode && window._fb){
+      var fb = window._fb;
+      // try storage first, fallback to base64
+      var imgRef = fb.ref(fb.storage,'memories/'+Date.now()+'_'+currentUser.uid);
+      fb.uploadString(imgRef,imgData,'data_url').then(function(){
+        return fb.getDownloadURL(imgRef);
+      }).then(function(url){
+        mem.image = url;
+        return doAddMemory(mem);
+      }).catch(function(){
+        mem.image = imgData;
+        return doAddMemory(mem);
+      });
     } else {
       mem.id = String(Date.now()); mem.image = imgData; mem.timestamp = Date.now();
-      S.memories.unshift(mem); renderGallery();
+      memories.unshift(mem); renderGallery();
+      resetUpload(btn);
     }
-    pi.value = '';
-    $id('dzPrev').style.display = 'none';
-    $id('dzIco').style.display  = '';
-    $id('dzTxt').style.display  = '';
-    $id('capIn').value = '';
-    btn.innerHTML = '✨ Post Memory'; btn.style.pointerEvents = '';
-    toast('Memory posted! ✨');
+    if(fbMode) resetUpload(btn);
   };
   reader.readAsDataURL(pi.files[0]);
 }
-async function deleteMemory(mid) {
-  if (S.fbMode && window._fb) {
-    const { db, doc, deleteDoc } = window._fb;
-    await deleteDoc(doc(db, 'memories', mid));
+
+function doAddMemory(mem){
+  var fb = window._fb;
+  mem.timestamp = fb.serverTimestamp();
+  return fb.addDoc(fb.collection(fb.db,'memories'),mem).then(function(){
+    toast('Memory posted! \u2728');
+  });
+}
+
+function resetUpload(btn){
+  $id('photoIn').value = '';
+  $id('dzPrev').style.display = 'none';
+  $id('dzIco').style.display  = '';
+  $id('dzTxt').style.display  = '';
+  $id('capIn').value = '';
+  btn.innerHTML = '\u2728 Post Memory'; btn.style.pointerEvents = '';
+  toast('Memory posted! \u2728');
+}
+
+function deleteMemory(mid){
+  if(fbMode && window._fb){
+    window._fb.deleteDoc(window._fb.doc(window._fb.db,'memories',mid));
   } else {
-    S.memories = S.memories.filter(m => m.id !== mid); renderGallery();
+    memories = memories.filter(function(m){ return m.id !== mid; });
+    renderGallery();
   }
   toast('Memory removed.');
 }
 
-/* ══ LIKES ══ */
-async function toggleLike(mid) {
-  const uid = S.user.uid;
-  if (S.fbMode && window._fb) {
-    const { db, doc, updateDoc, arrayUnion, arrayRemove } = window._fb;
-    const m = S.memories.find(x => x.id === mid);
-    const liked = (m?.likedBy||[]).includes(uid);
-    await updateDoc(doc(db,'memories',mid), liked
-      ? { likedBy: arrayRemove(uid), likes: Math.max(0,(m.likes||0)-1) }
-      : { likedBy: arrayUnion(uid),  likes: (m.likes||0)+1 }
+// ── LIKES ──
+function toggleLike(mid){
+  var uid = currentUser.uid;
+  if(fbMode && window._fb){
+    var fb = window._fb;
+    var m  = memories.find(function(x){ return x.id===mid; });
+    var liked = (m&&m.likedBy||[]).indexOf(uid) !== -1;
+    fb.updateDoc(fb.doc(fb.db,'memories',mid), liked
+      ? {likedBy:fb.arrayRemove(uid), likes:Math.max(0,(m.likes||0)-1)}
+      : {likedBy:fb.arrayUnion(uid),  likes:(m.likes||0)+1}
     );
   } else {
-    const m = S.memories.find(x => x.id === mid); if (!m) return;
-    const i = m.likedBy.indexOf(uid);
-    if (i===-1) { m.likedBy.push(uid); m.likes++; }
-    else { m.likedBy.splice(i,1); m.likes--; }
-    const btn = document.querySelector(`[data-like="${mid}"]`);
-    if (btn) {
-      const liked = m.likedBy.includes(uid);
-      btn.className = `act${liked?' liked':''}`;
+    var m2 = memories.find(function(x){ return x.id===mid; }); if(!m2) return;
+    var i  = m2.likedBy.indexOf(uid);
+    if(i===-1){ m2.likedBy.push(uid); m2.likes++; }
+    else { m2.likedBy.splice(i,1); m2.likes--; }
+    var btn = document.querySelector('[data-like="'+mid+'"]');
+    if(btn){
+      var lk = m2.likedBy.indexOf(uid)!==-1;
+      btn.className = 'act'+(lk?' liked':'');
       btn.dataset.like = mid;
-      btn.innerHTML = `<span class="heart">${liked?'❤️':'🤍'}</span> ${m.likes>0?m.likes:'Like'}`;
+      btn.innerHTML = '<span class="heart">'+(lk?'❤️':'🤍')+'</span> '+(m2.likes>0?m2.likes:'Like');
     }
   }
 }
 
-/* ══ COMMENTS ══ */
-function toggleCmts(mid) {
-  const m = S.memories.find(x => x.id === mid); if (!m) return;
+// ── COMMENTS ──
+function toggleCmts(mid){
+  var m = memories.find(function(x){ return x.id===mid; }); if(!m) return;
   m.commentsOpen = !m.commentsOpen;
-  const sec = $id(`cs-${mid}`);
-  if (sec) sec.classList.toggle('open', m.commentsOpen);
-  if (m.commentsOpen) setTimeout(() => $id(`ci-${mid}`)?.focus(), 60);
+  var sec = $id('cs-'+mid);
+  if(sec) sec.classList.toggle('open', m.commentsOpen);
+  if(m.commentsOpen) setTimeout(function(){ var el=$id('ci-'+mid); if(el) el.focus(); },60);
 }
-async function submitCmt(mid) {
-  const inp = $id(`ci-${mid}`);
-  const text = (inp?.value||'').trim(); if (!text) return;
-  const cmt = { id:String(S.nextCid++), author:{...S.user}, text, timestamp:Date.now() };
-  if (S.fbMode && window._fb) {
-    const { db, doc, updateDoc, arrayUnion } = window._fb;
-    await updateDoc(doc(db,'memories',mid), { comments: arrayUnion(cmt) });
+
+function submitCmt(mid){
+  var inp  = $id('ci-'+mid);
+  var text = (inp&&inp.value||'').trim(); if(!text) return;
+  var cmt  = {
+    id: String(nextCid++),
+    author: {uid:currentUser.uid,name:currentUser.name,color:currentUser.color,avatar:currentUser.avatar},
+    text: text,
+    timestamp: Date.now()
+  };
+  if(fbMode && window._fb){
+    window._fb.updateDoc(window._fb.doc(window._fb.db,'memories',mid),{comments:window._fb.arrayUnion(cmt)});
+    inp.value = '';
   } else {
-    const m = S.memories.find(x => x.id === mid); if (!m) return;
-    if (!m.comments) m.comments = [];
-    m.comments.push(cmt); inp.value = ''; renderCmts(mid);
-    const btn = document.querySelector(`[data-cmt="${mid}"]`);
-    if (btn) btn.innerHTML = `💬 ${m.comments.length}`;
-  }
-  if (S.fbMode) inp.value = '';
-}
-async function deleteCmt(mid, cid) {
-  if (S.fbMode && window._fb) {
-    const { db, doc, getDoc, updateDoc } = window._fb;
-    const snap = await getDoc(doc(db,'memories',mid));
-    if (!snap.exists()) return;
-    const updated = (snap.data().comments||[]).filter(c => c.id !== cid);
-    await updateDoc(doc(db,'memories',mid), { comments: updated });
-  } else {
-    const m = S.memories.find(x => x.id === mid); if (!m) return;
-    m.comments = m.comments.filter(c => c.id !== cid); renderCmts(mid);
-    const btn = document.querySelector(`[data-cmt="${mid}"]`);
-    if (btn) btn.innerHTML = `💬 ${m.comments.length>0?m.comments.length:'Comment'}`;
+    var m = memories.find(function(x){ return x.id===mid; }); if(!m) return;
+    if(!m.comments) m.comments=[];
+    m.comments.push(cmt); inp.value=''; renderCmts(mid);
+    var btn = document.querySelector('[data-cmt="'+mid+'"]');
+    if(btn) btn.innerHTML = '\uD83D\uDCAC '+m.comments.length;
   }
 }
-function renderCmts(mid) {
-  const m = S.memories.find(x => x.id === mid);
-  const wrap = $id(`cl-${mid}`);
-  if (!m || !wrap) return;
-  if (!m.comments?.length) { wrap.innerHTML = '<div class="no-ci">No comments yet — be the first! 💬</div>'; return; }
-  wrap.innerHTML = m.comments.map(c => {
-    const canDel = c.author.uid === S.user.uid || m.author.uid === S.user.uid;
-    const ts = c.timestamp?.seconds ? c.timestamp.seconds*1000 : c.timestamp;
-    const av = c.author.avatar
-      ? `<div class="ci-av" style="background:${c.author.color}"><img src="${c.author.avatar}" alt=""></div>`
-      : `<div class="ci-av" style="background:${c.author.color}">${ini(c.author.name)}</div>`;
-    return `<div class="ci">${av}<div class="ci-bub"><div class="ci-author">${esc(c.author.name)}</div><div class="ci-txt">${esc(c.text)}</div><div class="ci-time">${fmtTime(ts)}</div></div>${canDel?`<button class="ci-del" onclick="deleteCmt('${mid}','${c.id}')">✕</button>`:''}</div>`;
+
+function deleteCmt(mid,cid){
+  if(fbMode && window._fb){
+    var fb = window._fb;
+    fb.getDoc(fb.doc(fb.db,'memories',mid)).then(function(snap){
+      if(!snap.exists()) return;
+      var updated = (snap.data().comments||[]).filter(function(c){ return c.id!==cid; });
+      fb.updateDoc(fb.doc(fb.db,'memories',mid),{comments:updated});
+    });
+  } else {
+    var m = memories.find(function(x){ return x.id===mid; }); if(!m) return;
+    m.comments = m.comments.filter(function(c){ return c.id!==cid; });
+    renderCmts(mid);
+  }
+}
+
+function renderCmts(mid){
+  var m    = memories.find(function(x){ return x.id===mid; });
+  var wrap = $id('cl-'+mid);
+  if(!m||!wrap) return;
+  if(!m.comments||!m.comments.length){ wrap.innerHTML='<div class="no-ci">No comments yet \uD83D\uDCAC</div>'; return; }
+  wrap.innerHTML = m.comments.map(function(c){
+    var canDel = c.author.uid===currentUser.uid || m.author.uid===currentUser.uid;
+    var ts = c.timestamp&&c.timestamp.seconds ? c.timestamp.seconds*1000 : c.timestamp;
+    var av = c.author.avatar
+      ? '<div class="ci-av" style="background:'+c.author.color+'"><img src="'+c.author.avatar+'" alt=""></div>'
+      : '<div class="ci-av" style="background:'+c.author.color+'">'+ini(c.author.name)+'</div>';
+    return '<div class="ci">'+av+'<div class="ci-bub"><div class="ci-author">'+esc(c.author.name)+'</div><div class="ci-txt">'+esc(c.text)+'</div><div class="ci-time">'+fmtTime(ts)+'</div></div>'+(canDel?'<button class="ci-del" onclick="deleteCmt(\''+mid+'\',\''+c.id+'\')">✕</button>':'')+'</div>';
   }).join('');
 }
 
-/* ══ PROFILE ══ */
-function openEdit() {
-  $id('pName').value = S.user.name;
-  $id('pBio').value  = S.user.bio || '';
-  $id('pPw').value   = '';
-  S.tmpAv = S.user.avatar || null;
-  S.tmpColor = S.user.color;
+// ── PROFILE ──
+function openEdit(){
+  $id('pName').value = currentUser.name;
+  $id('pBio').value  = currentUser.bio||'';
+  tmpAv    = currentUser.avatar||null;
+  tmpColor = currentUser.color;
   buildSwatches(); renderAvPrev();
   $id('editOverlay').classList.add('open');
 }
-function closeEdit() { $id('editOverlay').classList.remove('open'); }
-function buildSwatches() {
-  $id('swatches').innerHTML = COLORS.map(c =>
-    `<div class="sw${c===S.tmpColor?' on':''}" style="background:${c}" data-c="${c}" onclick="pickColor('${c}')"></div>`
-  ).join('');
+function closeEdit(){ $id('editOverlay').classList.remove('open'); }
+function buildSwatches(){
+  $id('swatches').innerHTML = COLORS.map(function(c){
+    return '<div class="sw'+(c===tmpColor?' on':'')+'" style="background:'+c+'" data-c="'+c+'" onclick="pickColor(\''+c+'\')"></div>';
+  }).join('');
 }
-function pickColor(c) {
-  S.tmpColor = c;
-  document.querySelectorAll('.sw').forEach(s => s.classList.toggle('on', s.dataset.c===c));
+function pickColor(c){
+  tmpColor = c;
+  document.querySelectorAll('.sw').forEach(function(s){ s.classList.toggle('on',s.dataset.c===c); });
   $id('avPrev').style.background = c;
 }
-function onAvUp(e) {
-  const f = e.target.files[0]; if (!f) return;
-  const r = new FileReader();
-  r.onload = ev => { S.tmpAv = ev.target.result; renderAvPrev(); };
+function onAvUp(e){
+  var f=e.target.files[0]; if(!f) return;
+  var r=new FileReader();
+  r.onload=function(ev){ tmpAv=ev.target.result; renderAvPrev(); };
   r.readAsDataURL(f);
 }
-function renderAvPrev() {
-  const el = $id('avPrev');
-  el.style.background = S.tmpColor || S.user.color;
-  const inner = S.tmpAv
-    ? `<img src="${S.tmpAv}" alt="">`
-    : `<span style="font-size:24px;font-weight:600;color:white;position:relative;z-index:1">${ini($id('pName').value||S.user.name)}</span>`;
-  el.innerHTML = `${inner}<div class="av-ov">📷</div><input type="file" accept="image/*" onchange="onAvUp(event)">`;
+function renderAvPrev(){
+  var el=$id('avPrev');
+  el.style.background = tmpColor||currentUser.color;
+  var inner = tmpAv
+    ? '<img src="'+tmpAv+'" alt="">'
+    : '<span style="font-size:24px;font-weight:600;color:#fff;position:relative;z-index:1">'+ini($id('pName').value||currentUser.name)+'</span>';
+  el.innerHTML = inner+'<div class="av-ov">📷</div><input type="file" accept="image/*" onchange="onAvUp(event)">';
 }
-async function saveProfile() {
-  const name = val('pName'), bio = val('pBio');
-  if (!name) { toast('Name cannot be empty.'); return; }
-  busy('saveBtn', true);
-  S.user.name   = name;
-  S.user.bio    = bio;
-  S.user.color  = S.tmpColor || S.user.color;
-  S.user.avatar = S.tmpAv || null;
-  if (S.fbMode && window._fb) {
-    const { db, doc, setDoc } = window._fb;
-    await setDoc(doc(db,'profiles',S.user.uid), { name, bio, color:S.user.color, avatar:S.user.avatar }, { merge:true });
+function saveProfile(){
+  var name = ($id('pName').value||'').trim();
+  var bio  = ($id('pBio').value||'').trim();
+  if(!name){ toast('Name cannot be empty.'); return; }
+  currentUser.name   = name;
+  currentUser.bio    = bio;
+  currentUser.color  = tmpColor||currentUser.color;
+  currentUser.avatar = tmpAv||null;
+  if(fbMode&&window._fb){
+    window._fb.setDoc(window._fb.doc(window._fb.db,'profiles',currentUser.uid),
+      {name:name,bio:bio,color:currentUser.color,avatar:currentUser.avatar},{merge:true});
   }
   closeEdit(); refreshNav(); refreshHero();
-  if (!S.fbMode) renderGallery();
-  busy('saveBtn', false);
-  toast('Profile updated! ✨');
+  if(!fbMode) renderGallery();
+  toast('Profile updated! \u2728');
 }
 
-/* ══ VIEW PROFILE ══ */
-async function openVP(uid) {
-  if (uid === S.user.uid) { openEdit(); return; }
-  let p = S.fbMode ? await loadProfile(uid) : S.memories.find(m=>m.author.uid===uid)?.author;
-  if (!p) { toast('Profile not found.'); return; }
-  const el = $id('vpAv');
-  el.style.background = p.color || '#e8718a';
-  el.innerHTML = p.avatar ? `<img src="${p.avatar}" alt="">` : ini(p.name);
-  $id('vpName').textContent   = p.name;
-  $id('vpHandle').textContent = `@${p.name.split(' ')[0].toLowerCase()}`;
-  $id('vpBio').textContent    = p.bio || 'No bio yet.';
-  const userMems = S.memories.filter(m=>m.author.uid===uid);
-  const totLikes = userMems.reduce((s,m)=>s+(m.likes||0),0);
-  $id('vpStats').innerHTML = `
-    <div style="text-align:center">
-      <div style="font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--wine)">${userMems.length}</div>
-      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-top:2px">Memories</div>
-    </div>
-    <div style="text-align:center">
-      <div style="font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--wine)">${totLikes}</div>
-      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-top:2px">Likes</div>
-    </div>`;
+// ── VIEW PROFILE ──
+function openVP(uid){
+  if(uid===currentUser.uid){ openEdit(); return; }
+  var p = null;
+  if(fbMode&&window._fb){
+    window._fb.getDoc(window._fb.doc(window._fb.db,'profiles',uid)).then(function(snap){
+      p = snap.exists() ? snap.data() : null;
+      if(!p){ var m=memories.find(function(x){ return x.author.uid===uid; }); p=m?m.author:null; }
+      showVP(uid,p);
+    }).catch(function(){ var m=memories.find(function(x){ return x.author.uid===uid; }); showVP(uid,m?m.author:null); });
+  } else {
+    var m=memories.find(function(x){ return x.author.uid===uid; });
+    showVP(uid, m?m.author:null);
+  }
+}
+function showVP(uid,p){
+  if(!p){ toast('Profile not found.'); return; }
+  var el=$id('vpAv');
+  el.style.background=p.color||'#e8718a';
+  el.innerHTML=p.avatar?'<img src="'+p.avatar+'" alt="">':ini(p.name);
+  $id('vpName').textContent    = p.name;
+  $id('vpHandle').textContent  = '@'+p.name.split(' ')[0].toLowerCase();
+  $id('vpBio').textContent     = p.bio||'No bio yet.';
+  var userMems = memories.filter(function(m){ return m.author.uid===uid; });
+  var totLikes = userMems.reduce(function(s,m){ return s+(m.likes||0); },0);
+  $id('vpStats').innerHTML =
+    '<div style="text-align:center"><div style="font-family:\'Cormorant Garamond\',serif;font-size:26px;color:var(--wine)">'+userMems.length+'</div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-top:2px">Memories</div></div>'+
+    '<div style="text-align:center"><div style="font-family:\'Cormorant Garamond\',serif;font-size:26px;color:var(--wine)">'+totLikes+'</div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-top:2px">Likes</div></div>';
   $id('vpOverlay').classList.add('open');
 }
-function closeVP() { $id('vpOverlay').classList.remove('open'); }
+function closeVP(){ $id('vpOverlay').classList.remove('open'); }
 
-/* ══ LIGHTBOX ══ */
-function openLbox(src) { $id('lboxImg').src = src; $id('lbox').classList.add('open'); }
-function closeLbox()   { $id('lbox').classList.remove('open'); }
+// ── LIGHTBOX ──
+function openLbox(src){ $id('lboxImg').src=src; $id('lbox').classList.add('open'); }
+function closeLbox()  { $id('lbox').classList.remove('open'); }
 
-/* ══ RENDER GALLERY ══ */
-function renderGallery() {
-  const grid = $id('galGrid');
-  $id('memCnt').textContent = `${S.memories.length} ${S.memories.length===1?'memory':'memories'}`;
-  if (!S.memories.length) {
-    grid.innerHTML = `<div class="empty"><div class="empty-ico">🌸</div><div class="empty-ttl">No memories yet</div><div class="empty-sub">Be the first to share a beautiful moment</div></div>`;
+// ── RENDER ──
+function renderGallery(){
+  var grid = $id('galGrid');
+  $id('memCnt').textContent = memories.length+' '+(memories.length===1?'memory':'memories');
+  if(!memories.length){
+    grid.innerHTML='<div class="empty"><div class="empty-ico">\uD83C\uDF38</div><div class="empty-ttl">No memories yet</div><div class="empty-sub">Be the first to share a beautiful moment</div></div>';
     return;
   }
-  grid.innerHTML = S.memories.map((m,i) => {
-    const uid   = S.user.uid;
-    const liked = (m.likedBy||[]).includes(uid);
-    const owner = m.author.uid === uid;
-    const ts    = m.timestamp?.seconds ? m.timestamp.seconds*1000 : m.timestamp;
-    const safe  = (m.image||'').replace(/'/g,"\\'");
-    const mav   = m.author.avatar
-      ? `<div class="mc-av" style="background:${m.author.color}"><img src="${m.author.avatar}" alt=""></div>`
-      : `<div class="mc-av" style="background:${m.author.color}">${ini(m.author.name)}</div>`;
-    return `
-    <div class="mc" style="animation-delay:${i*.07}s">
-      <div class="mc-img-box" onclick="openLbox('${safe}')">
-        <img class="mc-img" src="${m.image||''}" alt="memory" loading="lazy">
-      </div>
-      <div class="mc-body">
-        <div class="mc-who" onclick="openVP('${m.author.uid}')">
-          ${mav}
-          <div class="mc-name">${esc(m.author.name)}</div>
-          <div class="mc-date">${fmtDate(ts)}</div>
-        </div>
-        <div class="mc-cap">${esc(m.caption)}</div>
-        <div class="mc-acts">
-          <button class="act${liked?' liked':''}" data-like="${m.id}" onclick="toggleLike('${m.id}')">
-            <span class="heart">${liked?'❤️':'🤍'}</span> ${m.likes>0?m.likes:'Like'}
-          </button>
-          <button class="act" data-cmt="${m.id}" onclick="toggleCmts('${m.id}')">
-            💬 ${m.comments?.length>0?m.comments.length:'Comment'}
-          </button>
-          ${owner?`<button class="del" onclick="deleteMemory('${m.id}')">✕ Delete</button>`:''}
-        </div>
-      </div>
-      <div class="cs${m.commentsOpen?' open':''}" id="cs-${m.id}">
-        <div class="cs-inner">
-          <div id="cl-${m.id}"></div>
-          <div class="ci-form">
-            <input class="ci-inp" id="ci-${m.id}" type="text" placeholder="Add a comment…"
-                   onkeydown="if(event.key==='Enter')submitCmt('${m.id}')">
-            <button class="ci-send" onclick="submitCmt('${m.id}')">Post</button>
-          </div>
-        </div>
-      </div>
-    </div>`;
+  grid.innerHTML = memories.map(function(m,i){
+    var uid   = currentUser.uid;
+    var liked = (m.likedBy||[]).indexOf(uid)!==-1;
+    var owner = m.author.uid===uid;
+    var ts    = m.timestamp&&m.timestamp.seconds ? m.timestamp.seconds*1000 : m.timestamp;
+    var safe  = (m.image||'').replace(/'/g,"\\'");
+    var mav   = m.author.avatar
+      ? '<div class="mc-av" style="background:'+m.author.color+'"><img src="'+m.author.avatar+'" alt=""></div>'
+      : '<div class="mc-av" style="background:'+m.author.color+'">'+ini(m.author.name)+'</div>';
+    return '<div class="mc" style="animation-delay:'+i*.07+'s">'+
+      '<div class="mc-img-box" onclick="openLbox(\''+safe+'\')"><img class="mc-img" src="'+(m.image||'')+'" alt="memory" loading="lazy"></div>'+
+      '<div class="mc-body">'+
+        '<div class="mc-who" onclick="openVP(\''+m.author.uid+'\')">'+mav+'<div class="mc-name">'+esc(m.author.name)+'</div><div class="mc-date">'+fmtDate(ts)+'</div></div>'+
+        '<div class="mc-cap">'+esc(m.caption)+'</div>'+
+        '<div class="mc-acts">'+
+          '<button class="act'+(liked?' liked':'')+'" data-like="'+m.id+'" onclick="toggleLike(\''+m.id+'\')"><span class="heart">'+(liked?'❤️':'🤍')+'</span> '+(m.likes>0?m.likes:'Like')+'</button>'+
+          '<button class="act" data-cmt="'+m.id+'" onclick="toggleCmts(\''+m.id+'\')">💬 '+(m.comments&&m.comments.length>0?m.comments.length:'Comment')+'</button>'+
+          (owner?'<button class="del" onclick="deleteMemory(\''+m.id+'\')">✕ Delete</button>':'')+
+        '</div>'+
+      '</div>'+
+      '<div class="cs'+(m.commentsOpen?' open':'')+'" id="cs-'+m.id+'">'+
+        '<div class="cs-inner">'+
+          '<div id="cl-'+m.id+'"></div>'+
+          '<div class="ci-form"><input class="ci-inp" id="ci-'+m.id+'" type="text" placeholder="Add a comment\u2026" onkeydown="if(event.key===\'Enter\')submitCmt(\''+m.id+'\')"><button class="ci-send" onclick="submitCmt(\''+m.id+'\')">Post</button></div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
   }).join('');
-  S.memories.forEach(m => renderCmts(m.id));
+  memories.forEach(function(m){ renderCmts(m.id); });
 }
 
-/* ══ NAV & HERO ══ */
-function refreshNav() {
-  const av = $id('navAv');
-  av.style.background = S.user.color;
-  av.innerHTML = S.user.avatar ? `<img src="${S.user.avatar}" alt="">` : ini(S.user.name);
-  $id('navName').textContent = S.user.name;
-}
-function refreshHero() {
-  $id('heroGreet').textContent = `Welcome back, ${S.user.name.split(' ')[0]}`;
-  $id('heroSub').textContent   = S.user.bio || 'Upload photos, share captions, and relive the moments that matter most.';
-}
-
-/* ══ STATUS / SPINNER ══ */
-function badge(type, msg) {
-  const el = $id('fbBadge');
-  el.className = `fb-badge show ${type}`;
-  $id('fbBadgeTxt').textContent = msg;
-  setTimeout(() => el.classList.remove('show'), 4000);
-}
-function hideSpin() { const s=$id('spinWrap'); if(s){s.style.display='none';} }
-
-/* ══ UTILS ══ */
-const $id  = s => document.getElementById(s);
-const val  = s => ($id(s)?.value||'').trim();
-const esc  = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const ini  = n => n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-const fmtDate = ts => ts ? new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
-const fmtTime = ts => ts ? new Date(ts).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : '';
-
-function toast(msg) {
-  const t = $id('toast');
-  t.textContent = msg; t.classList.add('show');
-  clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove('show'), 2900);
-}
-function showErr(el, msg) { el.textContent = msg; el.classList.add('on'); }
-function busy(btnId, on) {
-  const b = $id(btnId); if (!b) return;
-  b.classList.toggle('busy', on);
-  b.style.pointerEvents = on ? 'none' : '';
-}
-
-/* ══ EVENTS ══ */
-document.addEventListener('keydown', e => {
-  if (e.key==='Escape') { closeLbox(); closeEdit(); closeVP(); }
-  if (e.key==='Enter' && !$id('loginWrap').classList.contains('gone')) doLogin();
+// ── EVENTS ──
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){ closeLbox(); closeEdit(); closeVP(); }
+  if(e.key==='Enter' && !$id('loginWrap').classList.contains('hide')) doLogin();
 });
-window.addEventListener('scroll', () => {
-  $id('navBar')?.classList.toggle('scrolled', window.scrollY > 20);
-}, { passive:true });
-const dz = $id('dzBox');
-['dragenter','dragover'].forEach(e => dz.addEventListener(e, ev => { ev.preventDefault(); dz.classList.add('drag'); }));
-['dragleave','drop'].forEach(e => dz.addEventListener(e, () => dz.classList.remove('drag')));
-
-/* ══ BOOT ══ */
-// Show login immediately — never wait for Firebase to show UI
-showLogin();
-fbInit();
+window.addEventListener('scroll',function(){
+  $id('navBar').classList.toggle('scrolled',window.scrollY>20);
+},{passive:true});
+var dz=$id('dzBox');
+['dragenter','dragover'].forEach(function(ev){ dz.addEventListener(ev,function(e){e.preventDefault();dz.classList.add('drag');}); });
+['dragleave','drop'].forEach(function(ev){ dz.addEventListener(ev,function(){ dz.classList.remove('drag'); }); });
 </script>
+
+<!-- Firebase loads separately, does NOT block login -->
+<script type="module">
+try {
+  const {initializeApp} = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js');
+  const {getFirestore,collection,doc,addDoc,setDoc,getDoc,deleteDoc,onSnapshot,updateDoc,arrayUnion,arrayRemove,serverTimestamp,query,orderBy} = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
+  const {getStorage,ref,uploadString,getDownloadURL} = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js');
+  const app = initializeApp({
+    apiKey:'AIzaSyBLQxsqCpYeJznt_x8qU0Vvi-Sjqo7JRG0',
+    authDomain:'kupalsmemories.firebaseapp.com',
+    projectId:'kupalsmemories',
+    storageBucket:'kupalsmemories.firebasestorage.app',
+    messagingSenderId:'888207826275',
+    appId:'1:888207826275:web:fbb84eecbd8d0ac00f4756'
+  });
+  window._fb = {
+    db:getFirestore(app), storage:getStorage(app),
+    collection,doc,addDoc,setDoc,getDoc,deleteDoc,
+    onSnapshot,updateDoc,arrayUnion,arrayRemove,
+    serverTimestamp,query,orderBy,ref,uploadString,getDownloadURL
+  };
+} catch(e){
+  window._fb = null;
+}
+</script>
+
 </body>
 </html>
