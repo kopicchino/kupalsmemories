@@ -426,16 +426,31 @@ function doLogout(){
 
 // ── FIREBASE (loads after login) ──
 function initFirebase(){
-  if(!window._fb){ fbMode = false; renderGallery(); return; }
+  if(!window._fb){ 
+    fbMode = false; 
+    console.log('Firebase not loaded');
+    renderGallery(); 
+    return; 
+  }
   fbMode = true;
+  console.log('Firebase loaded, initializing...');
   var fb = window._fb;
   var q = fb.query(fb.collection(fb.db,'memories'), fb.orderBy('timestamp','desc'));
   fbUnsub = fb.onSnapshot(q, function(snap){
+    console.log('Memories snapshot:', snap.docs.length, 'documents');
     var open = {};
     memories.forEach(function(m){ if(m.commentsOpen) open[m.id]=true; });
-    memories = snap.docs.map(function(d){ return Object.assign({id:d.id},d.data(),{commentsOpen:!!open[d.id]}); });
+    memories = snap.docs.map(function(d){ 
+      var data = d.data();
+      console.log('Memory data:', data);
+      return Object.assign({id:d.id}, data, {commentsOpen:!!open[d.id]}); 
+    });
     renderGallery();
-  }, function(e){ console.warn('FB error:',e); fbMode=false; renderGallery(); });
+  }, function(e){ 
+    console.warn('FB error:',e); 
+    fbMode=false; 
+    renderGallery(); 
+  });
 
   // load saved profile
   fb.getDoc(fb.doc(fb.db,'profiles',currentUser.uid)).then(function(snap){
@@ -447,7 +462,7 @@ function initFirebase(){
       currentUser.avatar = p.avatar || null;
       refreshNav(); refreshHero();
     }
-  }).catch(function(){});
+  }).catch(function(err){ console.warn('Profile load error:', err); });
 }
 
 // ── NAV / HERO ──
@@ -826,6 +841,7 @@ if(localStorage.getItem('theme') === 'dark'){
 <script>
 try {
   const app = firebase.initializeApp({
+  // REPLACE THIS WITH YOUR FIREBASE CONFIG FROM FIREBASE CONSOLE > PROJECT SETTINGS > GENERAL > YOUR APPS > WEB APP CONFIG
   apiKey:'AIzaSyBLQxsqCpYeJznt_x8qU0Vvi-Sjqo7JRG0',
   authDomain:'kupalsmemories.firebaseapp.com',
   projectId:'kupalsmemories',
@@ -839,7 +855,9 @@ try {
     onSnapshot:firebase.onSnapshot,updateDoc:firebase.updateDoc,arrayUnion:firebase.arrayUnion,arrayRemove:firebase.arrayRemove,
     serverTimestamp:firebase.serverTimestamp,query:firebase.query,orderBy:firebase.orderBy,ref:firebase.ref,uploadString:firebase.uploadString,getDownloadURL:firebase.getDownloadURL
   };
+  console.log('Firebase initialized successfully');
 } catch(e){
+  console.error('Firebase init error:', e);
   window._fb = null;
 }
 </script>
