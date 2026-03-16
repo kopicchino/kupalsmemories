@@ -425,7 +425,7 @@ function fbInit() {
 }
 function demoMode() {
   S.fbMode = false;
-  badge('demo', 'Running offline — memories won't be saved');
+  badge('demo', 'Running offline - data not saved');
   hideSpin();
   showLogin();
 }
@@ -443,30 +443,48 @@ async function loadProfile(uid) {
 }
 
 /* ══ AUTH ══ */
-async function doLogin() {
+function doLogin() {
   const username = val('loginUser'), pw = val('loginPw');
   const err = $id('loginErr');
   err.classList.remove('on');
-  if (!username || !pw) { showErr(err, 'Please fill in all fields.'); return; }
-  busy('loginBtn', true);
+
+  if (!username || !pw) {
+    showErr(err, 'Please fill in all fields.');
+    return;
+  }
+
   const account = ACCOUNTS.find(a =>
     a.username.toLowerCase() === username.toLowerCase() && a.password === pw
   );
+
   if (!account) {
     showErr(err, 'Incorrect username or password.');
-    busy('loginBtn', false);
     return;
   }
-  const saved = await loadProfile(account.uid);
+
+  // Set user from hardcoded account immediately
   S.user = {
     uid:    account.uid,
-    name:   saved?.name   || account.name,
-    bio:    saved?.bio    || account.bio || '',
-    color:  saved?.color  || account.color,
-    avatar: saved?.avatar || null
+    name:   account.name,
+    bio:    account.bio || '',
+    color:  account.color,
+    avatar: null
   };
+
+  // Try to load saved profile in background, then refresh UI
+  if (S.fbMode && window._fb) {
+    loadProfile(account.uid).then(saved => {
+      if (saved) {
+        S.user.name   = saved.name   || S.user.name;
+        S.user.bio    = saved.bio    || S.user.bio;
+        S.user.color  = saved.color  || S.user.color;
+        S.user.avatar = saved.avatar || null;
+        refreshNav(); refreshHero();
+      }
+    }).catch(() => {});
+  }
+
   enterApp();
-  busy('loginBtn', false);
 }
 
 async function doLogout() {
