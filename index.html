@@ -12,6 +12,12 @@
   --muted:#7a6068;--card:#fff;--sh:rgba(122,31,58,.11);
   --back:cubic-bezier(.34,1.56,.64,1);--smooth:cubic-bezier(.4,0,.2,1);
 }
+
+[data-theme="dark"] {
+  --cream:#1a1a1a;--warm:#2a2a2a;--blush:#f4b8c1;--rose:#e8718a;
+  --deep:#c4405a;--wine:#7a1f3a;--dust:#666;--ink:#fff;
+  --muted:#ccc;--card:#333;--sh:rgba(0,0,0,.3);
+}
 *{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
 body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh;overflow-x:hidden;}
@@ -61,6 +67,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
 .nav-name{font-size:13px;font-weight:500;color:var(--ink);}
 .nav-out{padding:8px 16px;background:transparent;border:1.5px solid #ecddd9;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .2s;}
 .nav-out:hover{border-color:var(--rose);color:var(--rose);transform:translateY(-1px);}
+
+/* ── NAV SEARCH ── */
+.nav-search{width:200px;padding:8px 12px;border:1.5px solid #ecddd9;border-radius:20px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink);background:var(--warm);outline:none;margin-right:10px;transition:border-color .2s,box-shadow .2s;}
+.nav-search:focus{border-color:var(--rose);background:#fff;box-shadow:0 0 0 3px rgba(232,113,138,.1);}
+
+/* ── THEME TOGGLE ── */
+.nav-toggle{background:none;border:1.5px solid #ecddd9;border-radius:8px;padding:8px;font-size:14px;cursor:pointer;margin-right:10px;transition:all .2s;}
+.nav-toggle:hover{border-color:var(--rose);transform:translateY(-1px);}
 
 /* ── HERO ── */
 .hero{text-align:center;padding:62px 20px 42px;position:relative;z-index:1;}
@@ -268,6 +282,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);m
   <nav class="nav" id="navBar">
     <div class="nav-brand" onclick="window.scrollTo({top:0,behavior:'smooth'})">Circle of <em>Memories</em></div>
     <div class="nav-r">
+      <input class="nav-search" id="navSearch" type="text" placeholder="Search memories..." oninput="filterMemories()">
+      <button class="nav-toggle" id="themeToggle" onclick="toggleTheme()">🌙</button>
       <button class="nav-pill" onclick="openEdit()">
         <div class="nav-av" id="navAv"></div>
         <span class="nav-name" id="navName"></span>
@@ -382,6 +398,8 @@ function doLogin(){
     avatar: null
   };
 
+  localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
   // hide login, show app
   $id('loginWrap').classList.add('hide');
   $id('app').classList.add('on');
@@ -394,6 +412,7 @@ function doLogin(){
 function doLogout(){
   if(fbUnsub){ fbUnsub(); fbUnsub = null; }
   currentUser = null; memories = [];
+  localStorage.removeItem('currentUser');
   $id('app').classList.remove('on');
   $id('loginWrap').classList.remove('hide');
   $id('loginUser').value = '';
@@ -730,24 +749,36 @@ function openLbox(src){ $id('lboxImg').src=src; $id('lbox').classList.add('open'
 function closeLbox()  { $id('lbox').classList.remove('open'); }
 
 // ── RENDER ──
+function filterMemories(){
+  var query = ($id('navSearch').value || '').toLowerCase();
+  var filtered = memories.filter(function(m){
+    return !query || m.caption.toLowerCase().includes(query) || m.author.name.toLowerCase().includes(query);
+  });
+  renderFilteredGallery(filtered);
+}
+
 function renderGallery(){
+  renderFilteredGallery(memories);
+}
+
+function renderFilteredGallery(mems){
   var grid = $id('galGrid');
-  $id('memCnt').textContent = memories.length+' '+(memories.length===1?'memory':'memories');
-  if(!memories.length){
-    grid.innerHTML='<div class="empty"><div class="empty-ico">\uD83C\uDF38</div><div class="empty-ttl">No memories yet</div><div class="empty-sub">Be the first to share a beautiful moment</div></div>';
+  $id('memCnt').textContent = mems.length+' '+(mems.length===1?'memory':'memories');
+  if(!mems.length){
+    grid.innerHTML='<div class="empty"><div class="empty-ico">\uD83C\uDF38</div><div class="empty-ttl">No memories found</div><div class="empty-sub">Try a different search</div></div>';
     return;
   }
-  grid.innerHTML = memories.map(function(m,i){
+  grid.innerHTML = mems.map(function(m,i){
     var uid   = currentUser.uid;
     var liked = (m.likedBy||[]).indexOf(uid)!==-1;
     var owner = m.author.uid===uid;
     var ts    = m.timestamp&&m.timestamp.seconds ? m.timestamp.seconds*1000 : m.timestamp;
-    var safe  = (m.image||'').replace(/'/g,"\\'");
+    var safe  = (m.photo||'').replace(/'/g,"\\'");
     var mav   = m.author.avatar
       ? '<div class="mc-av" style="background:'+m.author.color+'"><img src="'+m.author.avatar+'" alt=""></div>'
       : '<div class="mc-av" style="background:'+m.author.color+'">'+ini(m.author.name)+'</div>';
     return '<div class="mc" style="animation-delay:'+i*.07+'s">'+
-      '<div class="mc-img-box" onclick="openLbox(\''+safe+'\')"><img class="mc-img" src="'+(m.image||'')+'" alt="memory" loading="lazy"></div>'+
+      '<div class="mc-img-box" onclick="openLbox(\''+safe+'\')"><img class="mc-img" src="'+(m.photo||'')+'" alt="memory" loading="lazy"></div>'+
       '<div class="mc-body">'+
         '<div class="mc-who" onclick="openVP(\''+m.author.uid+'\')">'+mav+'<div class="mc-name">'+esc(m.author.name)+'</div><div class="mc-date">'+fmtDate(ts)+'</div></div>'+
         '<div class="mc-cap">'+esc(m.caption)+'</div>'+
@@ -765,7 +796,7 @@ function renderGallery(){
       '</div>'+
     '</div>';
   }).join('');
-  memories.forEach(function(m){ renderCmts(m.id); });
+  mems.forEach(function(m){ renderCmts(m.id); });
 }
 
 // ── EVENTS ──
@@ -779,6 +810,27 @@ window.addEventListener('scroll',function(){
 var dz=$id('dzBox');
 ['dragenter','dragover'].forEach(function(ev){ dz.addEventListener(ev,function(e){e.preventDefault();dz.classList.add('drag');}); });
 ['dragleave','drop'].forEach(function(ev){ dz.addEventListener(ev,function(){ dz.classList.remove('drag'); }); });
+
+// ── THEME TOGGLE ──
+function toggleTheme(){
+  var html = document.documentElement;
+  var toggle = $id('themeToggle');
+  if(html.dataset.theme === 'dark'){
+    html.dataset.theme = '';
+    toggle.textContent = '🌙';
+    localStorage.setItem('theme', 'light');
+  } else {
+    html.dataset.theme = 'dark';
+    toggle.textContent = '☀️';
+    localStorage.setItem('theme', 'dark');
+  }
+}
+
+// Load theme on init
+if(localStorage.getItem('theme') === 'dark'){
+  document.documentElement.dataset.theme = 'dark';
+  $id('themeToggle').textContent = '☀️';
+}
 </script>
 
 <!-- Firebase loads separately, does NOT block login -->
