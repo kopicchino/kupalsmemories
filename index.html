@@ -7,29 +7,29 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
 
 <script type="module">
-import { initializeApp }
-  from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getFirestore, collection, doc, addDoc, setDoc, getDoc,
-         deleteDoc, onSnapshot, updateDoc, arrayUnion, arrayRemove,
-         serverTimestamp, query, orderBy }
-  from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-import { getStorage, ref, uploadString, getDownloadURL }
-  from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
-
-const firebaseConfig = {
-  apiKey:            "AIzaSyBLQxsqCpYeJznt_x8qU0Vvi-Sjqo7JRG0",
-  authDomain:        "kupalsmemories.firebaseapp.com",
-  projectId:         "kupalsmemories",
-  storageBucket:     "kupalsmemories.firebasestorage.app",
-  messagingSenderId: "888207826275",
-  appId:             "1:888207826275:web:fbb84eecbd8d0ac00f4756",
-  measurementId:     "G-C0SWL10NW3"
-};
-
 try {
+  const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js");
+  const { getFirestore, collection, doc, addDoc, setDoc, getDoc,
+          deleteDoc, onSnapshot, updateDoc, arrayUnion, arrayRemove,
+          serverTimestamp, query, orderBy } =
+    await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js");
+  const { getStorage, ref, uploadString, getDownloadURL } =
+    await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js");
+
+  const firebaseConfig = {
+    apiKey:            "AIzaSyBLQxsqCpYeJznt_x8qU0Vvi-Sjqo7JRG0",
+    authDomain:        "kupalsmemories.firebaseapp.com",
+    projectId:         "kupalsmemories",
+    storageBucket:     "kupalsmemories.firebasestorage.app",
+    messagingSenderId: "888207826275",
+    appId:             "1:888207826275:web:fbb84eecbd8d0ac00f4756",
+    measurementId:     "G-C0SWL10NW3"
+  };
+
   const app     = initializeApp(firebaseConfig);
   const db      = getFirestore(app);
   const storage = getStorage(app);
+
   window._fb = {
     db, storage,
     collection, doc, addDoc, setDoc, getDoc,
@@ -38,6 +38,7 @@ try {
     ref, uploadString, getDownloadURL
   };
 } catch(e) {
+  console.warn('Firebase load error:', e);
   window._fb = null;
 }
 window._fbReady = true;
@@ -395,26 +396,36 @@ const COLORS = [
 
 let S = {
   user: null, memories: [], nextCid: 1,
-  fbMode: false, unsub: null, tmpAv: null, tmpColor: null
+  fbMode: false, unsub: null, tmpAv: null, tmpColor: null,
+  started: false
 };
 
 /* ══ FIREBASE INIT ══ */
-function onFbReady(cb) {
-  if (window._fbReady) { cb(); return; }
-  document.addEventListener('fb-ready', cb, { once: true });
-}
 function fbInit() {
-  onFbReady(() => {
+  // Hard escape: no matter what happens, show login within 3 seconds
+  const hardEscape = setTimeout(() => {
+    if (!S.started) { S.started = true; demoMode(); }
+  }, 3000);
+
+  function onReady() {
+    if (S.started) return;
+    S.started = true;
+    clearTimeout(hardEscape);
     if (!window._fb) { demoMode(); return; }
     S.fbMode = true;
     badge('live', '🔥 Firebase connected');
     hideSpin();
     showLogin();
-  });
+  }
+
+  // Check immediately
+  if (window._fbReady) { onReady(); return; }
+  // Otherwise wait for the event
+  document.addEventListener('fb-ready', onReady, { once: true });
 }
 function demoMode() {
   S.fbMode = false;
-  badge('demo', 'Demo mode — data will not persist');
+  badge('demo', 'Running offline — memories won't be saved');
   hideSpin();
   showLogin();
 }
