@@ -568,11 +568,21 @@ async function postMemory() {
 }
 
 function doAddMemory(mem){
+  console.log('Attempting to add memory:', mem);
   if(fbMode && window._fb){
     mem.timestamp = fb.serverTimestamp();
+    console.log('Saving to Firebase...');
     return fb.addDoc(fb.collection(fb.db,'memories'),mem)
-             .then(()=> toast('Memory posted! ✨'));
+             .then(function(docRef){
+               console.log('Memory saved with ID:', docRef.id);
+               toast('Memory posted! ✨');
+             })
+             .catch(function(err){
+               console.error('Save error:', err);
+               toast('Failed to save memory: ' + err.message);
+             });
   } else {
+    console.log('Firebase not available');
     toast('Database connection failed. Memories require online database.');
   }
 }
@@ -841,13 +851,13 @@ if(localStorage.getItem('theme') === 'dark'){
 <script>
 try {
   const app = firebase.initializeApp({
-  // REPLACE THIS WITH YOUR FIREBASE CONFIG FROM FIREBASE CONSOLE > PROJECT SETTINGS > GENERAL > YOUR APPS > WEB APP CONFIG
-  apiKey:'AIzaSyBLQxsqCpYeJznt_x8qU0Vvi-Sjqo7JRG0',
-  authDomain:'kupalsmemories.firebaseapp.com',
-  projectId:'kupalsmemories',
-  storageBucket:'kupalsmemories.appspot.com',
-  messagingSenderId:'888207826275',
-  appId:'1:888207826275:web:fbb84eecbd8d0ac00f4756'
+  apiKey: "AIzaSyBLQxsqCpYeJznt_x8qU0Vvi-Sjqo7JRG0",
+  authDomain: "kupalsmemories.firebaseapp.com",
+  projectId: "kupalsmemories",
+  storageBucket: "kupalsmemories.firebasestorage.app",
+  messagingSenderId: "888207826275",
+  appId: "1:888207826275:web:fbb84eecbd8d0ac00f4756",
+  measurementId: "G-C0SWL10NW3"
 });
   window._fb = {
     db:firebase.getFirestore(app), storage:firebase.getStorage(app),
