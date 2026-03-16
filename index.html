@@ -750,13 +750,13 @@ try {
   const {getFirestore,collection,doc,addDoc,setDoc,getDoc,deleteDoc,onSnapshot,updateDoc,arrayUnion,arrayRemove,serverTimestamp,query,orderBy} = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js');
   const {getStorage,ref,uploadString,getDownloadURL} = await import('https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js');
   const app = initializeApp({
-    apiKey:'AIzaSyBLQxsqCpYeJznt_x8qU0Vvi-Sjqo7JRG0',
-    authDomain:'kupalsmemories.firebaseapp.com',
-    projectId:'kupalsmemories',
-    storageBucket:'kupalsmemories.firebasestorage.app',
-    messagingSenderId:'888207826275',
-    appId:'1:888207826275:web:fbb84eecbd8d0ac00f4756'
-  });
+  apiKey:'AIzaSyBLQxsqCpYeJznt_x8qU0Vvi-Sjqo7JRG0',
+  authDomain:'kupalsmemories.firebaseapp.com',
+  projectId:'kupalsmemories',
+  storageBucket:'kupalsmemories.appspot.com',
+  messagingSenderId:'888207826275',
+  appId:'1:888207826275:web:fbb84eecbd8d0ac00f4756'
+});
   window._fb = {
     db:getFirestore(app), storage:getStorage(app),
     collection,doc,addDoc,setDoc,getDoc,deleteDoc,
