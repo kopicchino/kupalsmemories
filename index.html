@@ -13,10 +13,6 @@
 <script type="module">
 import { initializeApp }
   from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-         signOut, onAuthStateChanged, updateProfile, sendPasswordResetEmail, updatePassword }
-  from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { getFirestore, collection, doc, addDoc, setDoc, getDoc,
          deleteDoc, onSnapshot, updateDoc, arrayUnion, arrayRemove,
          serverTimestamp, query, orderBy }
@@ -36,15 +32,10 @@ const firebaseConfig = {
 
 try {
   const app     = initializeApp(firebaseConfig);
-  const auth    = getAuth(app);
   const db      = getFirestore(app);
-  const storage   = getStorage(app);
-  try { getAnalytics(app); } catch(ae) { /* analytics optional */ }
+  const storage = getStorage(app);
   window._fb = {
-    auth, db, storage,
-    createUserWithEmailAndPassword, signInWithEmailAndPassword,
-    signOut, onAuthStateChanged, updateProfile,
-    sendPasswordResetEmail, updatePassword,
+    db, storage,
     collection, doc, addDoc, setDoc, getDoc,
     deleteDoc, onSnapshot, updateDoc, arrayUnion, arrayRemove,
     serverTimestamp, query, orderBy,
@@ -764,42 +755,13 @@ body{
   <div class="auth-logo">Circle of <em>Memories</em></div>
   <div class="auth-tag">Your shared space for beautiful moments</div>
   <div class="auth-err" id="loginErr"></div>
-  <div class="fl"><input type="email" id="loginEmail" placeholder=" " autocomplete="email"><label>Email address</label></div>
+  <div class="fl"><input type="text" id="loginUser" placeholder=" " autocomplete="off"><label>Username</label></div>
   <div class="fl"><input type="password" id="loginPw" placeholder=" "><label>Password</label></div>
   <button class="auth-btn" id="loginBtn" onclick="doLogin()">Sign In →</button>
-  <div class="auth-sw">
-    No account? <a onclick="toScreen('signup')">Create one</a> &nbsp;·&nbsp;
-    <a onclick="toScreen('forgot')">Forgot password?</a>
-  </div>
 </div>
 </div>
 
-<!-- ════════ SIGN UP ════════ -->
-<div class="auth-wrap gone" id="signupWrap">
-<div class="auth-card">
-  <div class="auth-logo">Join the <em>Circle</em></div>
-  <div class="auth-tag">Create your account and start sharing</div>
-  <div class="auth-err" id="signupErr"></div>
-  <div class="fl"><input type="text" id="signupName" placeholder=" "><label>Full name</label></div>
-  <div class="fl"><input type="email" id="signupEmail" placeholder=" " autocomplete="email"><label>Email address</label></div>
-  <div class="fl"><input type="password" id="signupPw" placeholder=" "><label>Password (6+ characters)</label></div>
-  <button class="auth-btn" id="signupBtn" onclick="doSignup()">Create Account →</button>
-  <div class="auth-sw">Already have an account? <a onclick="toScreen('login')">Sign in</a></div>
-</div>
-</div>
 
-<!-- ════════ FORGOT ════════ -->
-<div class="auth-wrap gone" id="forgotWrap">
-<div class="auth-card">
-  <div class="auth-logo">Reset <em>Password</em></div>
-  <div class="auth-tag">We'll send a reset link to your email</div>
-  <div class="auth-err" id="forgotErr"></div>
-  <div class="auth-ok" id="forgotOk"></div>
-  <div class="fl"><input type="email" id="forgotEmail" placeholder=" "><label>Email address</label></div>
-  <button class="auth-btn" id="forgotBtn" onclick="doForgot()">Send Reset Link →</button>
-  <div class="auth-sw"><a onclick="toScreen('login')">← Back to Sign In</a></div>
-</div>
-</div>
 
 <!-- ════════ VIEW PROFILE ════════ -->
 <div class="overlay" id="vpOverlay" onclick="if(event.target===this)closeVP()">
@@ -901,6 +863,22 @@ body{
 /* ═══════════════════════════════════════════════
    STATE
 ═══════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════
+   HARDCODED ACCOUNTS — edit here
+   uid must be unique per user (used as Firestore key)
+═══════════════════════════════════════════════ */
+const ACCOUNTS = [
+  { uid:'user_jeff',  username:'jeff',  password:'jeff092905', name:'Jefferson Padua', color:'#e8718a', bio:'' },
+  { uid:'user_iwa',  username:'iwa',  password:'iwa123',  name:'Iwa Aishe Novelozo',   color:'#7c9fc4', bio:'' },
+  { uid:'user_mima',    username:'mima',    password:'mima123',   name:'Jericho Villaluz',  color:'#a3c47c', bio:'' },
+  { uid:'user_joseph,  username:'joseph',  password:'jb123',  name:'Joseph Lazaro',  color:'#c4a37c', bio:'' },
+  { uid:'user_vincer,  username:'vincer',  password:'vincer123',  name:'Vincer Cañamales',  color:'#c4a37c', bio:'' },
+     { uid:'user_lablab,  username:'lablab',  password:'denife123',  name:'Denife Parcon',  color:'#c4a37c', bio:'' },
+     { uid:'user_zyrich,  username:'zyrich',  password:'zyrich123',  name:'Zyrich Suarez',  color:'#c4a37c', bio:'' },
+     { uid:'user_jp,  username:'johnpatrick',  password:'jp123',  name:'John Patrick Magpoc',  color:'#c4a37c', bio:'' },
+];
+
 const COLORS = [
   '#e8718a','#c4405a','#7c9fc4','#4a7dab',
   '#a3c47c','#6aab3e','#c4a37c','#ab7c3e',
@@ -925,60 +903,23 @@ function onFbReady(cb) {
 }
 
 function fbInit() {
-  onFbReady(async () => {
+  onFbReady(() => {
     if (!window._fb) {
-      // Config placeholder or load error → demo mode
       demoMode(); return;
     }
-    const { auth, onAuthStateChanged } = window._fb;
-    let resolved = false;
-    const failTimer = setTimeout(() => {
-      if (!resolved) { resolved = true; demoMode(); }
-    }, 6000);
-
-    onAuthStateChanged(auth, fbUser => {
-      if (resolved) return;
-      resolved = true;
-      clearTimeout(failTimer);
-      S.fbMode = true;
-      badge('live', '🔥 Firebase connected');
-      hideSpin();
-      if (fbUser) {
-        fbLogin(fbUser);
-      } else {
-        toScreen('login');
-      }
-    }, err => {
-      if (resolved) return;
-      resolved = true;
-      clearTimeout(failTimer);
-      console.warn('Firebase auth error:', err);
-      demoMode();
-    });
-    return; // don't fall through
+    // Firestore-only: no Auth needed, just mark as connected and show login
+    S.fbMode = true;
+    badge('live', '🔥 Firebase connected');
+    hideSpin();
+    toScreen('login');
   });
 }
 
 function demoMode() {
   S.fbMode = false;
-  badge('demo', 'Demo mode — add Firebase config to persist data');
+  badge('demo', 'Demo mode — data will not persist');
   hideSpin();
-  // make sure login screen is visible
-  const lw = $id('loginWrap');
-  if (lw) { lw.classList.remove('gone','out'); }
-}
-
-async function fbLogin(fbUser) {
-  const profile = await loadProfile(fbUser.uid);
-  S.user = {
-    uid:    fbUser.uid,
-    email:  fbUser.email,
-    name:   profile?.name  || fbUser.displayName || fbUser.email.split('@')[0],
-    bio:    profile?.bio   || '',
-    color:  profile?.color || COLORS[0],
-    avatar: profile?.avatar || null
-  };
-  enterApp();
+  toScreen('login');
 }
 
 async function loadProfile(uid) {
@@ -994,93 +935,47 @@ async function loadProfile(uid) {
    AUTH ACTIONS
 ═══════════════════════════════════════════════ */
 function toScreen(s) {
-  const map = { login:'loginWrap', signup:'signupWrap', forgot:'forgotWrap' };
-  const targetId = map[s];
-  // hide all screens except the target immediately
-  ['loginWrap','signupWrap','forgotWrap'].forEach(wid => {
-    if (wid === targetId) return;
-    const el = $id(wid);
-    if (!el.classList.contains('gone')) {
-      el.classList.add('out');
-      setTimeout(() => { el.classList.add('gone'); el.classList.remove('out'); }, 440);
-    }
-  });
-  // show target
-  const target = $id(targetId);
-  target.classList.remove('gone','out');
-  const card = target.querySelector('.auth-card');
-  if (card) { card.style.animation = 'none'; requestAnimationFrame(() => { card.style.animation = ''; }); }
+  // Only login screen exists now
+  const lw = $id('loginWrap');
+  if (lw) { lw.classList.remove('gone','out'); }
 }
 
 async function doLogin() {
-  const email = val('loginEmail'), pw = val('loginPw');
+  const username = val('loginUser'), pw = val('loginPw');
   const err = $id('loginErr');
   err.classList.remove('on');
-  if (!email || !pw) { showErr(err, 'Please fill in all fields.'); return; }
+  if (!username || !pw) { showErr(err, 'Please fill in all fields.'); return; }
   busy('loginBtn', true);
-  if (S.fbMode) {
-    try {
-      const { auth, signInWithEmailAndPassword } = window._fb;
-      await signInWithEmailAndPassword(auth, email, pw);
-    } catch(e) { showErr(err, fErr(e)); }
-  } else {
-    S.user = { uid: email, email, name: email.split('@')[0], bio:'', color: rColor(), avatar: null };
-    enterApp();
+
+  const account = ACCOUNTS.find(a =>
+    a.username.toLowerCase() === username.toLowerCase() && a.password === pw
+  );
+  if (!account) {
+    showErr(err, 'Incorrect username or password.');
+    busy('loginBtn', false);
+    return;
   }
+
+  // Load saved profile from Firestore if available
+  const saved = await loadProfile(account.uid);
+  S.user = {
+    uid:    account.uid,
+    name:   saved?.name   || account.name,
+    bio:    saved?.bio    || account.bio || '',
+    color:  saved?.color  || account.color,
+    avatar: saved?.avatar || account.avatar || null
+  };
+  enterApp();
   busy('loginBtn', false);
 }
 
-async function doSignup() {
-  const name = val('signupName'), email = val('signupEmail'), pw = val('signupPw');
-  const err = $id('signupErr');
-  err.classList.remove('on');
-  if (!name||!email||!pw) { showErr(err,'Please fill in all fields.'); return; }
-  if (pw.length < 6)      { showErr(err,'Password must be at least 6 characters.'); return; }
-  busy('signupBtn', true);
-  if (S.fbMode) {
-    try {
-      const { auth, createUserWithEmailAndPassword, updateProfile, db, doc, setDoc } = window._fb;
-      const cred = await createUserWithEmailAndPassword(auth, email, pw);
-      await updateProfile(cred.user, { displayName: name });
-      const profile = { name, bio:'', color: rColor(), avatar: null, email };
-      await setDoc(doc(db, 'profiles', cred.user.uid), profile);
-    } catch(e) { showErr(err, fErr(e)); }
-  } else {
-    S.user = { uid: email, email, name, bio:'', color: rColor(), avatar: null };
-    enterApp();
-  }
-  busy('signupBtn', false);
-}
 
-async function doForgot() {
-  const email = val('forgotEmail');
-  const err = $id('forgotErr'), ok = $id('forgotOk');
-  err.classList.remove('on'); ok.classList.remove('on');
-  if (!email) { showErr(err,'Please enter your email.'); return; }
-  busy('forgotBtn', true);
-  if (S.fbMode) {
-    try {
-      const { auth, sendPasswordResetEmail } = window._fb;
-      await sendPasswordResetEmail(auth, email);
-      ok.textContent = '✅ Reset link sent! Check your inbox.';
-      ok.classList.add('on');
-      setTimeout(() => toScreen('login'), 2600);
-    } catch(e) { showErr(err, fErr(e)); }
-  } else {
-    ok.textContent = 'Demo mode: password reset not available.';
-    ok.classList.add('on');
-  }
-  busy('forgotBtn', false);
-}
 
 async function doLogout() {
-  if (S.fbMode && window._fb) {
-    if (S.unsub) { S.unsub(); S.unsub = null; }
-    await window._fb.signOut(window._fb.auth);
-  }
+  if (S.unsub) { S.unsub(); S.unsub = null; }
   S.user = null; S.memories = [];
   $id('app').classList.remove('on');
-  toScreen('login');
+  const lw = $id('loginWrap'); if(lw){lw.classList.remove('gone','out');}
   toast('See you soon! 👋');
 }
 
@@ -1088,7 +983,7 @@ async function doLogout() {
    APP ENTER
 ═══════════════════════════════════════════════ */
 function enterApp() {
-  ['loginWrap','signupWrap','forgotWrap'].forEach(wid => {
+  ['loginWrap'].forEach(wid => {
     const el = $id(wid);
     el.classList.add('out');
     setTimeout(() => { el.classList.add('gone'); el.classList.remove('out'); }, 480);
@@ -1344,15 +1239,10 @@ async function saveProfile() {
   S.user.color  = S.tmpColor || S.user.color;
   S.user.avatar = S.tmpAv || null;
   if (S.fbMode && window._fb) {
-    const { auth, updateProfile, db, doc, setDoc, updatePassword } = window._fb;
-    await updateProfile(auth.currentUser, { displayName: name });
+    const { db, doc, setDoc } = window._fb;
     await setDoc(doc(db,'profiles',S.user.uid), {
-      name, bio, color: S.user.color, avatar: S.user.avatar, email: S.user.email
+      name, bio, color: S.user.color, avatar: S.user.avatar
     }, { merge: true });
-    if (pw) {
-      try { await updatePassword(auth.currentUser, pw); }
-      catch { toast('Re-authenticate to change your password.'); }
-    }
   }
   closeEdit(); refreshNav(); refreshHero();
   if (!S.fbMode) renderGallery();
@@ -1520,7 +1410,7 @@ document.addEventListener('keydown', e => {
   if (e.key==='Escape') { closeLbox(); closeEdit(); closeVP(); }
   if (e.key==='Enter') {
     if (!$id('loginWrap').classList.contains('gone')  && !$id('loginWrap').classList.contains('out'))  doLogin();
-    else if (!$id('signupWrap').classList.contains('gone') && !$id('signupWrap').classList.contains('out')) doSignup();
+
   }
 });
 
