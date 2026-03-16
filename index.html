@@ -440,9 +440,11 @@ function refreshHero(){
   $id('heroSub').textContent   = currentUser.bio || 'Upload photos, share captions, and relive the moments that matter most.';
 }
 
-// ── POST MEMORY ──
+// ── POST MEMORY WITH PROGRESS ──
 function onPhoto(e){
-  var f = e.target.files[0]; if(!f) return;
+  var f = e.target.files[0]; 
+  if(!f) return;
+
   var r = new FileReader();
   r.onload = function(ev){
     $id('dzPrev').src = ev.target.result;
@@ -453,51 +455,87 @@ function onPhoto(e){
   r.readAsDataURL(f);
 }
 
-function postMemory(){
+function uploadToCloudinaryWithProgress(file, onProgress){
+  return new Promise((resolve, reject) => {
+    var xhr = new XMLHttpRequest();
+    var formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'mycirclememories'); // exact preset
+
+    xhr.open('POST', 'https://api.cloudinary.com/v1_1/dixidxpca/image/upload');
+
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable && onProgress) {
+        let percent = Math.round((e.loaded / e.total) * 100);
+        onProgress(percent);
+      }
+    });
+
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        const data = JSON.parse(xhr.responseText);
+        if (data.secure_url) resolve(data.secure_url);
+        else reject(new Error('Upload failed'));
+      } else {
+        reject(new Error('Upload failed: ' + xhr.statusText));
+      }
+    };
+
+    xhr.onerror = () => reject(new Error('Network error'));
+    xhr.send(formData);
+  });
+}
+
+async function postMemory() {
   var pi  = $id('photoIn');
   var cap = ($id('capIn').value || '').trim();
-  if(!pi.files.length){ toast('Please choose a photo first!'); return; }
+
+  if (!pi.files.length) {
+    toast('Please choose a photo first!');
+    return;
+  }
+
   var btn = $id('postBtn');
-  btn.textContent = '\u23F3 Uploading\u2026'; btn.style.pointerEvents='none';
-  var reader = new FileReader();
-  reader.onload = function(ev){
-    var imgData = ev.target.result;
+  btn.style.pointerEvents = 'none';
+
+  try {
+    const uploadedUrl = await uploadToCloudinaryWithProgress(pi.files[0], (percent) => {
+      btn.textContent = `\u23F3 Uploading ${percent}%…`;
+    });
+
     var mem = {
-      author: {uid:currentUser.uid,name:currentUser.name,color:currentUser.color,avatar:currentUser.avatar},
-      caption: cap || 'A beautiful memory \uD83C\uDF38',
-      likes:0, likedBy:[], comments:[]
+      author: { uid: currentUser.uid, name: currentUser.name },
+      caption: cap,
+      photo: uploadedUrl,
+      timestamp: new Date().toISOString()
     };
-    if(fbMode && window._fb){
-      var fb = window._fb;
-      // try storage first, fallback to base64
-      var imgRef = fb.ref(fb.storage,'memories/'+Date.now()+'_'+currentUser.uid);
-      fb.uploadString(imgRef,imgData,'data_url').then(function(){
-        return fb.getDownloadURL(imgRef);
-      }).then(function(url){
-        mem.image = url;
-        return doAddMemory(mem);
-      }).catch(function(){
-        mem.image = imgData;
-        return doAddMemory(mem);
-      });
-    } else {
-      mem.id = String(Date.now()); mem.image = imgData; mem.timestamp = Date.now();
-      memories.unshift(mem); renderGallery();
-      resetUpload(btn);
-    }
-    if(fbMode) resetUpload(btn);
-  };
-  reader.readAsDataURL(pi.files[0]);
+
+    // Save memory to your database
+    await doAddMemory(mem);
+
+    toast('Memory posted successfully!');
+    btn.textContent = 'Post Memory';
+    btn.style.pointerEvents = 'auto';
+    pi.value = '';
+    $id('capIn').value = '';
+    $id('dzPrev').style.display = 'none';
+    $id('dzIco').style.display  = 'block';
+    $id('dzTxt').style.display  = 'block';
+
+  } catch (err) {
+    console.error(err);
+    toast('Error uploading image!');
+    btn.textContent = 'Post Memory';
+    btn.style.pointerEvents = 'auto';
+  }
 }
 
 function doAddMemory(mem){
   var fb = window._fb;
   mem.timestamp = fb.serverTimestamp();
-  return fb.addDoc(fb.collection(fb.db,'memories'),mem).then(function(){
-    toast('Memory posted! \u2728');
-  });
+  return fb.addDoc(fb.collection(fb.db,'memories'),mem)
+           .then(()=> toast('Memory posted! ✨'));
 }
-
 function resetUpload(btn){
   $id('photoIn').value = '';
   $id('dzPrev').style.display = 'none';
